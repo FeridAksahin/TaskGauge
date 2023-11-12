@@ -396,3 +396,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+*.cs linguist-detectable=true
+*.css linguist-detectable=false
+*.cshtml linguist-detectable=false
