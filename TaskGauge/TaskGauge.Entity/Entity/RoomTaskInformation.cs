@@ -14,7 +14,7 @@ namespace TaskGauge.Entity.Entity
         [Key]
         public int Id { get; set; }
         public int RoomId { get; set; }
-        public string TaskId { get; set; }
+        public int TaskId { get; set; }
         public string DevelopmentEstimationTime { get; set; }
         public string TestEstimationTime { get; set; }
         public int TestBufferHour { get; set; }
