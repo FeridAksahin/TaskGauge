@@ -8,19 +8,16 @@ using System.Threading.Tasks;
 
 namespace TaskGauge.Entity.Entity
 {
-    [Table("RoomTaskInformation")]
-    public class RoomTaskInformation
+    [Table("PatchTotalEstimationTime")]
+    public class PatchTotalEstimationTime
     {
         [Key]
         public int Id { get; set; }
         public int RoomId { get; set; }
-        public int TaskId { get; set; }
         public string DevelopmentEstimationTime { get; set; }
         public string TestEstimationTime { get; set; }
         public int TestBufferHour { get; set; }
         public int DevelopmentBufferHour { get; set; }
-        [ForeignKey("TaskId")]
-        public virtual Task Task { get; set; }
         [ForeignKey("RoomId")]
         public virtual Room Room { get; set; }
     }
