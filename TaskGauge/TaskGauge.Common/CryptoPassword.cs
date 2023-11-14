@@ -5,54 +5,36 @@ namespace TaskGauge.Common
 {
     public static class CryptoPassword
     {
-        private const string Key = "VBU7U63L*K?HJ34V";
+        private const string _key = "VBU7U63L*K?HJ34V";
 
         public static string EncryptPassword(string password)
         {
-            using (Aes aesAlg = Aes.Create())
+            byte[] keyBytes = Encoding.UTF8.GetBytes(_key);
+            byte[] plainBytes = Encoding.UTF8.GetBytes(password);
+
+            for (int i = 0; i < plainBytes.Length; i++)
             {
-                aesAlg.Key = Encoding.UTF8.GetBytes(Key);
-                aesAlg.Mode = CipherMode.CFB;
-
-                ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
-
-                using (MemoryStream msEncrypt = new MemoryStream())
-                {
-                    using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
-                    using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
-                    {
-                        swEncrypt.Write(password);
-                    }
-
-                    byte[] ivAndEncryptedText = aesAlg.IV.Concat(msEncrypt.ToArray()).ToArray();
-                    return Convert.ToBase64String(ivAndEncryptedText);
-                }
+                plainBytes[i] = (byte)(plainBytes[i] ^ keyBytes[i % keyBytes.Length]);
             }
+
+            return Convert.ToBase64String(plainBytes);
         }
 
-        public static string DecryptPassword(string encryptedPassword)
+        public static string DecryptPassword(string encryptedText)
         {
-            byte[] ivAndEncryptedText = Convert.FromBase64String(encryptedPassword);
+            byte[] keyBytes = Encoding.UTF8.GetBytes(_key);
+            byte[] encryptedBytes = Convert.FromBase64String(encryptedText);
 
-            using (Aes aesAlg = Aes.Create())
+            for (int i = 0; i < encryptedBytes.Length; i++)
             {
-                aesAlg.Key = Encoding.UTF8.GetBytes(Key);
-                aesAlg.Mode = CipherMode.CFB;
-
-                byte[] iv = ivAndEncryptedText.Take(16).ToArray();
-                byte[] encryptedText = ivAndEncryptedText.Skip(16).ToArray();
-
-                aesAlg.IV = iv;
-
-                ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
-
-                using (MemoryStream msDecrypt = new MemoryStream(encryptedText))
-                using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
-                using (StreamReader srDecrypt = new StreamReader(csDecrypt))
-                {
-                    return srDecrypt.ReadToEnd();
-                }
+                encryptedBytes[i] = (byte)(encryptedBytes[i] ^ keyBytes[i % keyBytes.Length]);
             }
+
+            return Encoding.UTF8.GetString(encryptedBytes);
         }
     }
+
+
+
+
 }
