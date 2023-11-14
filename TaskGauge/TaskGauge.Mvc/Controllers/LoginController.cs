@@ -36,6 +36,18 @@ namespace TaskGauge.Mvc.Controllers
         }
 
         [HttpPost]
+        public IActionResult Index(LoginDto loginDto)
+        {
+            var result = _userDal.Login(loginDto);
+            if (result.Contains("error"))
+            {
+                TempData["FailedLogin"] = result.Split("Type")[0];
+                return RedirectToAction("Index");
+            }
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpPost]
         public JsonResult Register(RegisterDto registerDto)
         {
             var result = _userDal.Register(registerDto);

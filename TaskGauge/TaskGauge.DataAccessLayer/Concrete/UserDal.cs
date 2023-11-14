@@ -48,11 +48,35 @@ namespace TaskGauge.DataAccessLayer.Concrete
                 _taskGaugeContext.SaveChanges();
                 return $"{TextResources.SuccessfullyRegisteredUser} Type: success";
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 return $"{exception.Message} Type: error";
             }
-            
+
+        }
+
+        public string Login(LoginDto loginDto)
+        {
+            try
+            {
+                var isExistUsername = _taskGaugeContext.User.Where
+                    (x => x.Name.Equals(loginDto.Username)).Any();
+                if (!isExistUsername)
+                {
+                    return $"{TextResources.WrongUsername} Type: error";
+                }
+                var isAcceptLogin = _taskGaugeContext.User.Where
+                    (x=>x.Password.Equals(CryptoPassword.EncryptPassword(loginDto.Password))).Any();
+                if (isAcceptLogin)
+                {
+                    return "Type: success";
+                }
+                return $"{TextResources.WrongPassword} Type: error";
+            }
+            catch (Exception exception)
+            {
+                return $"{exception.Message} Type: error";
+            }
         }
     }
 }
