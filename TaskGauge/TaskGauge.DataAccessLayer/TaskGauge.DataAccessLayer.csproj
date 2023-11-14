@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TaskGauge.Common\TaskGauge.Common.csproj" />
+    <ProjectReference Include="..\TaskGauge.DataTransferObject\TaskGauge.DataTransferObject.csproj" />
+    <ProjectReference Include="..\TaskGauge.Entity\TaskGauge.Entity.csproj" />
+  </ItemGroup>
+
+</Project>

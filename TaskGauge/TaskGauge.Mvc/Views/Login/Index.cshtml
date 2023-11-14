@@ -7,6 +7,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <title>Login/Register/Forgot Password Form</title>
     <style>
         body {
@@ -38,112 +40,149 @@
         }
 
         .btn-link {
-            color: #343a40; /* Siyah renkli link */
+            color: #343a40;
         }
 
-        .btn-link:hover {
-            text-decoration: underline;
-        }
+            .btn-link:hover {
+                text-decoration: underline;
+            }
     </style>
 </head>
 <body>
-
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card" id="loginCard">
-                <div class="card-header">
-                    <h3>Login</h3>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card" id="loginCard">
+                    <div class="card-header">
+                        <h3>Login</h3>
+                    </div>
+                    <div class="card-body">
+                        @if (ViewBag.RegisterMessage != null)
+                        {
+                            <div class="alert alert-info" role="alert">
+                                @ViewBag.RegisterMessage
+                            </div>
+                        }
+                        <!-- Login Form -->
+                        <form id="loginForm">
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="loginUsername" placeholder="Username" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="password" class="form-control" id="loginPassword" placeholder="Password" required>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-block">Login</button>
+                            <a href="#" class="btn btn-link btn-block" onclick="showForm('registerForm')">Switch to Register</a>
+                            <a href="#" class="btn btn-link btn-block" onclick="showForm('forgotPasswordForm')">Forgot Password?</a>
+                        </form>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <!-- Login Form -->
-                    <form id="loginForm">
-                        <div class="form-group">
-                            <input type="text" class="form-control" id="loginUsername" placeholder="Username" required>
-                        </div>
-                        <div class="form-group">
-                            <input type="password" class="form-control" id="loginPassword" placeholder="Password" required>
-                        </div>
-                        <button type="submit" class="btn btn-success btn-block">Login</button>
-                        <a href="#" class="btn btn-link btn-block" onclick="showForm('registerForm')">Switch to Register</a>
-                        <a href="#" class="btn btn-link btn-block" onclick="showForm('forgotPasswordForm')">Forgot Password?</a>
-                    </form>
-                </div>
-            </div>
-            <div class="card" id="registerCard" style="display: none;">
-                <div class="card-header">
-                    <h3>Register</h3>
-                </div>
-                <div class="card-body">
-                    <!-- Register Form -->
-                     <form id="registerForm" asp-action="Index" asp-controller="Login">
+                <div class="card" id="registerCard" style="display: none;">
+                    <div class="card-header">
+                        <h3>Register</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Register Form -->
                         <div class="form-group">
                             <input type="text" class="form-control" id="registerUsername" placeholder="Username" required>
                         </div>
                         <div class="form-group">
                             <input type="password" class="form-control" id="registerPassword" placeholder="Password" required>
-                        </div> 
+                        </div>
                         <div class="form-group">
                             <select class="form-control" id="securityQuestion">
-                                <option value="1">What is your favorite color?</option> 
-                                <option value="1">What is your favorite color?</option> 
+                                @foreach (var question in ViewBag.SecurityQuestions)
+                                {
+                                    <option>@question.Text</option>
+                                }
                             </select>
                         </div>
                         <div class="form-group">
                             <input type="text" class="form-control" id="securityAnswer" placeholder="Security Answer" required>
                         </div>
-                        <button type="submit" class="btn btn-success btn-block">Register</button>
+                        <button type="submit" class="btn btn-success btn-block" onclick="register()">Register</button>
                         <a href="#" class="btn btn-link btn-block" onclick="showForm('loginForm')">Switch to Login</a>
-                    </form>
+                    </div>
                 </div>
-            </div>
-            <div class="card" id="forgotPasswordCard" style="display: none;">
-                <div class="card-header">
-                    <h3>Forgot Password</h3>
-                </div>
-                <div class="card-body">
-                    <!-- Forgot Password Form -->
-                    <form id="forgotPasswordForm">
-                        <div class="form-group">
-                            <input type="text" class="form-control" id="forgotPasswordUsername" placeholder="Username" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="securityQuestion">Security Question:</label>
-                            <select class="form-control" id="securityQuestion">
-                                <option value="1">What is your favorite color?</option> 
-                                <option value="1">What is your favorite color?</option> 
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <input type="text" class="form-control" id="forgotPasswordAnswer" placeholder="Security Answer" required>
-                        </div>
-                        <button type="submit" class="btn btn-warning btn-block">Submit</button>
-                        <a href="#" class="btn btn-link btn-block" onclick="showForm('loginForm')">Switch to Login</a>
-                    </form>
+                <div class="card" id="forgotPasswordCard" style="display: none;">
+                    <div class="card-header">
+                        <h3>Forgot Password</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Forgot Password Form -->
+                        <form id="forgotPasswordForm">
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="forgotPasswordUsername" placeholder="Username" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Security Question:</label>
+                                <select class="form-control" id="securityQuestionForForgotPassword">
+                                    @foreach (var question in ViewBag.SecurityQuestions)
+                                    {
+                                        <option>@question.Text</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="forgotPasswordAnswer" placeholder="Security Answer" required>
+                            </div>
+                            <button type="submit" class="btn btn-warning btn-block">Submit</button>
+                            <a href="#" class="btn btn-link btn-block" onclick="showForm('loginForm')">Switch to Login</a>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-
-<script>
-    function showForm(formId) {
-        if (formId === 'loginForm') {
-            document.getElementById("loginCard").style.display = "block";
-            document.getElementById("registerCard").style.display = "none";
-            document.getElementById("forgotPasswordCard").style.display = "none";
-        } else if (formId === 'registerForm') {
-            document.getElementById("loginCard").style.display = "none";
-            document.getElementById("registerCard").style.display = "block";
-            document.getElementById("forgotPasswordCard").style.display = "none";
-        } else if (formId === 'forgotPasswordForm') {
-            document.getElementById("loginCard").style.display = "none";
-            document.getElementById("registerCard").style.display = "none";
-            document.getElementById("forgotPasswordCard").style.display = "block";
+    <script>
+        function showForm(formId) {
+            if (formId === 'loginForm') {
+                document.getElementById("loginCard").style.display = "block";
+                document.getElementById("registerCard").style.display = "none";
+                document.getElementById("forgotPasswordCard").style.display = "none";
+            } else if (formId === 'registerForm') {
+                document.getElementById("loginCard").style.display = "none";
+                document.getElementById("registerCard").style.display = "block";
+                document.getElementById("forgotPasswordCard").style.display = "none";
+            } else if (formId === 'forgotPasswordForm') {
+                document.getElementById("loginCard").style.display = "none";
+                document.getElementById("registerCard").style.display = "none";
+                document.getElementById("forgotPasswordCard").style.display = "block";
+            }
         }
-    }
-</script>
+
+        function register() {
+            debugger;
+            var username = document.getElementById("registerUsername").value;
+            var password = document.getElementById("registerPassword").value;
+            var question = document.getElementById("securityQuestion").value;
+            var answer = document.getElementById("securityAnswer").value;
+
+            var data = { Username: username, Password: password, SecurityQuestion: question, SecurityQuestionAnswer: answer };
+            $.ajax({
+                url: "/Login/Register",
+                data: { registerDto: data },
+                method: 'POST',
+                success: function(data) {
+                    if (data.type == "error") {
+                        Swal.fire({
+                            text: data.message,
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        })
+                    } 
+                    else 
+                    {
+                        location.href = "/Login/Index?isRegisterUser=true";
+                    }
+
+                }
+            });
+
+
+        }
+    </script>
 
 </body>
 </html>

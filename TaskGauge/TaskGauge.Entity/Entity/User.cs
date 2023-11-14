@@ -16,10 +16,9 @@ namespace TaskGauge.Entity.Entity
         public string Name { get; set; }
         public string Password { get; set; }    
         public DateTime RecordTime { get; set; } = DateTime.Now;
-        public string SecurityQuestion { get; set; }
+        public int SecurityQuestionId { get; set; }
         public string SecurityQuestionAnswer { get; set; }
-        public int UserTypeId { get; set; }
-        [ForeignKey("UserTypeId")]
-        public virtual UserType UserType { get; set; }
+        [ForeignKey("SecurityQuestionId")]
+        public virtual SecurityQuestion SecurityQuestion { get; set; }
     }
 }
