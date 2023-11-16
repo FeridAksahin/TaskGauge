@@ -1,0 +1,162 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrum Poker Room</title>
+    <style>
+        body {
+            display: flex;
+            align-items: stretch;
+            height: 100vh;
+            margin: 0;
+            background-color: #f8f9fa;
+        }
+
+        .container-fluid {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: stretch;
+            height: 100%;
+        }
+
+        #participant-list,
+        #task-section {
+            border: 1px solid #343a40;
+            border-radius: 15px;
+            margin: 10px;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #participant-list {
+            flex-basis: 200px;
+        }
+
+        #task-section {
+            flex-grow: 1;
+        }
+
+        #participant-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .participant {
+            margin-bottom: 10px;
+        }
+
+        .task-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .task {
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .btn-success {
+            margin-top: 10px;
+        }
+
+        .task-duration {
+            width: 70px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div id="participant-list">
+            <h3>Participants</h3>
+            <ul id="participants">
+            </ul>
+        </div>
+
+        <div id="task-section">
+            <h3>Task Section</h3>
+            <form id="taskForm">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="taskName" placeholder="Enter Task Name" required>
+                </div>
+                <button type="button" class="btn btn-success" onclick="openTaskModal()">Add Task</button>
+            </form>
+            <ul id="taskList" class="task-list">
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script> 
+
+    <div class="modal fade" id="taskModal" tabindex="-1" role="dialog" aria-labelledby="taskModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="taskModalLabel">Set Task Duration</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="taskDurationForm">
+                        <div class="form-group">
+                            <label for="taskDuration">Duration:</label>
+                            <select class="form-control form-control-sm" id="taskDuration" required>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-success" onclick="setTaskDuration()">Set Duration</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addTask() {
+            var taskName = $('#taskName').val();
+            if (taskName.trim() !== "") {
+                var listItem = '<li class="task">' +
+                    '<span>' + taskName + '</span>' +
+                    '<button type="button" class="btn btn-primary btn-sm" onclick="openTaskModal()">Set Duration</button>' +
+                    '</li>';
+                $('#taskList').append(listItem);
+                $('#taskName').val("");
+            }
+        }
+
+        function openTaskModal() {
+            $('#taskModal').modal('show');
+        }
+
+        function setTaskDuration() {
+            var taskDuration = $('#taskDuration').val();
+            var selectedTask = $('.task.active');
+            selectedTask.find('.task-duration').text(' - ' + taskDuration + ' point(s)');
+            $('#taskModal').modal('hide');
+        }
+
+        function updateParticipants(participantList) {
+            $('#participants').empty();
+            participantList.forEach(function (participant) {
+                $('#participants').append('<li class="participant">' + participant + '</li>');
+            });
+        }
+
+        var participants = ["Participant 1", "Participant 2", "Participant 3"];
+
+        updateParticipants(participants);
+    </script>
+</body>
+
+</html>

@@ -7,5 +7,10 @@ namespace TaskGauge.Mvc.Controllers
         {
             return View();
         }
+
+        public IActionResult Room()
+        {
+            return View();
+        }
     }
 }
