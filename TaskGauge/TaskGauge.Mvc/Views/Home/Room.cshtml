@@ -94,9 +94,12 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script> 
+    <script src="~/js/microsoft/signalr/dist/webworker/signalr.min.js"></script>
+    <script src="~/js/microsoft/signalr/dist/webworker/signalr.js"></script>
+    <script src="~/js/room.js"></script>
 
     <div class="modal fade" id="taskModal" tabindex="-1" role="dialog" aria-labelledby="taskModalLabel"
-        aria-hidden="true">
+         aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -121,42 +124,6 @@
             </div>
         </div>
     </div>
-
-    <script>
-        function addTask() {
-            var taskName = $('#taskName').val();
-            if (taskName.trim() !== "") {
-                var listItem = '<li class="task">' +
-                    '<span>' + taskName + '</span>' +
-                    '<button type="button" class="btn btn-primary btn-sm" onclick="openTaskModal()">Set Duration</button>' +
-                    '</li>';
-                $('#taskList').append(listItem);
-                $('#taskName').val("");
-            }
-        }
-
-        function openTaskModal() {
-            $('#taskModal').modal('show');
-        }
-
-        function setTaskDuration() {
-            var taskDuration = $('#taskDuration').val();
-            var selectedTask = $('.task.active');
-            selectedTask.find('.task-duration').text(' - ' + taskDuration + ' point(s)');
-            $('#taskModal').modal('hide');
-        }
-
-        function updateParticipants(participantList) {
-            $('#participants').empty();
-            participantList.forEach(function (participant) {
-                $('#participants').append('<li class="participant">' + participant + '</li>');
-            });
-        }
-
-        var participants = ["Participant 1", "Participant 2", "Participant 3"];
-
-        updateParticipants(participants);
-    </script>
 </body>
 
 </html>
