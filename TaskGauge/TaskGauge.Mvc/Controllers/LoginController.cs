@@ -1,5 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using TaskGauge.Common;
 using TaskGauge.Common.Enum;
 using TaskGauge.DataAccessLayer.Interface;
@@ -7,7 +11,7 @@ using TaskGauge.DataTransferObject;
 
 namespace TaskGauge.Mvc.Controllers
 {
-
+    [AllowAnonymous]
     public class LoginController : Controller
     {
 
@@ -36,7 +40,7 @@ namespace TaskGauge.Mvc.Controllers
         }
 
         [HttpPost]
-        public IActionResult Index(LoginDto loginDto)
+        public async Task<IActionResult> Index(LoginDto loginDto)
         {
             var result = _userDal.Login(loginDto);
             if (result.Contains("error"))
@@ -44,6 +48,18 @@ namespace TaskGauge.Mvc.Controllers
                 TempData["FailedLogin"] = result.Split("Type")[0];
                 return RedirectToAction("Index");
             }
+            var claim = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, loginDto.Username),
+            };
+            var claimIdentity = new ClaimsIdentity(claim, CookieAuthenticationDefaults.AuthenticationScheme);
+            var authenticationProperties = new AuthenticationProperties();
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimIdentity), authenticationProperties);
+
+            HttpContext.Session.SetString("Username", loginDto.Username);
+            
             return RedirectToAction("Index", "Home");
         }
 
