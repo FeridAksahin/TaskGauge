@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TaskGauge.DataTransferObject
 {
-    public class RoomDto
+    public class RoomUserDto
     {
         public string Username { get; set; }
         public string RoomName { get; set; }
