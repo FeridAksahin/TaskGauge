@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Join/Create Room Form</title>
+    <title>Join/Make Room Form</title>
     <style>
         body {
             display: flex;
@@ -38,9 +38,9 @@
             color: #343a40;
         }
 
-        .btn-link:hover {
-            text-decoration: underline;
-        }
+            .btn-link:hover {
+                text-decoration: underline;
+            }
     </style>
 </head>
 
@@ -62,21 +62,19 @@
                         <div class="mt-3 text-center">
                             <span>or</span>
                         </div>
-                        <button type="button" class="btn btn-primary btn-block mt-3" onclick="showForm('createRoomForm')">Create Room</button>
+                        <button type="button" class="btn btn-primary btn-block mt-3" onclick="showForm('makeRoomForm')">Make Room</button>
                     </div>
                 </div>
 
-                <div class="card" id="createRoomCard" style="display: none;">
+                <div class="card" id="makeRoomCard" style="display: none;">
                     <div class="card-header">
-                        <h3>Create Room</h3>
+                        <h3>Make Room</h3>
                     </div>
                     <div class="card-body">
-                        <form id="createRoomForm">
-                            <div class="form-group">
-                                <input type="text" class="form-control" id="newRoomName" placeholder="Enter Room Name" required>
-                            </div>
-                            <button type="button" class="btn btn-primary btn-block" onclick="createRoom()">Create Room</button>
-                        </form>
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="newRoomName" placeholder="Enter Room Name" required>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-block" onclick="makeRoom()">Make Room</button>
                         <div class="mt-3 text-center">
                             <span>or</span>
                         </div>
@@ -91,26 +89,44 @@
         function showForm(formId) {
             if (formId === 'joinRoomForm') {
                 document.getElementById("roomCard").style.display = "block";
-                document.getElementById("createRoomCard").style.display = "none";
-            } else if (formId === 'createRoomForm') {
+                document.getElementById("makeRoomCard").style.display = "none";
+            } else if (formId === 'makeRoomForm') {
                 document.getElementById("roomCard").style.display = "none";
-                document.getElementById("createRoomCard").style.display = "block";
+                document.getElementById("makeRoomCard").style.display = "block";
             }
         }
 
         function joinRoom() {
             var roomName = document.getElementById("roomName").value;
-            // Implement the logic to join the room here
-            console.log("Joining room: " + roomName);
         }
 
-        function createRoom() {
-            var newRoomName = document.getElementById("newRoomName").value;
-            // Implement the logic to create the room here
-            console.log("Creating room: " + newRoomName);
+        function makeRoom() {
+            debugger;
+            var roomName = document.getElementById("newRoomName").value;
+            //$.ajax({
+            //    url: taskGauge.urlList.new_room,
+            //    data: { roomName: roomName },
+            //    method: 'POST',
+            //    success: function(data) {
+            //        if (data.type == "error") {
+            //            Swal.fire({
+            //                text: data.message,
+            //                icon: 'error',
+            //                confirmButtonText: 'OK'
+            //            })
+            //        }
+            //    },
+            //    error: function(jqXHR, textStatus, errorThrown) { 
+            //        console.error('Ajax Error:', textStatus, errorThrown); 
+            //        Swal.fire({
+            //            text: 'Error occured.',
+            //            icon: 'error',
+            //            confirmButtonText: 'OK'
+            //        });
+            //    }
+            //});
         }
     </script>
 
 </body>
-
 </html>

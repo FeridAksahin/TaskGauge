@@ -151,8 +151,7 @@
             }
         }
 
-        function register() {
-            debugger;
+        function register() { 
             var username = document.getElementById("registerUsername").value;
             var password = document.getElementById("registerPassword").value;
             var question = document.getElementById("securityQuestion").value;
@@ -160,7 +159,7 @@
 
             var data = { Username: username, Password: password, SecurityQuestion: question, SecurityQuestionAnswer: answer };
             $.ajax({
-                url: "/Login/Register",
+                url: taskGauge.urlList.register_post,
                 data: { registerDto: data },
                 method: 'POST',
                 success: function(data) {
