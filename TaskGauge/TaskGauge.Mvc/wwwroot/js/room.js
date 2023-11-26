@@ -4,16 +4,20 @@ const connection = new signalR.HubConnectionBuilder()
     .configureLogging(signalR.LogLevel.Information)
     .build();
 
-connection.on("userJoined", function (connectionId) {
-    console.log('User joined: ' + connectionId); 
+connection.on("userJoined", function (username) {
+    console.log('User joined: ' + username); 
     debugger;
-    $('#participants').append('<li class="participant">' + connectionId + '</li>');
+    $('#participants').append('<li class="participant">' + username + '</li>');
 });
 
 connection.start().then(function () {
     connection.invoke("joinRoom", "room1");
 }).catch(function (err) {
     return console.error(err.toString());
+});
+
+connection.on("userLeft", function (username) {
+    $('#participants').append('<li class="participant">' + 'TEST' + '</li>');
 });
 
 function addTask() {
