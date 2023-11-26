@@ -8,11 +8,6 @@ namespace TaskGauge.Mvc.Controllers
         public IActionResult Index()
         {
             return View();
-        }
-
-        public IActionResult Room()
-        {
-            return View();
-        }
+        } 
     }
 }
