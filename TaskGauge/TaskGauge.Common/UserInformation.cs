@@ -12,13 +12,20 @@ namespace TaskGauge.Common
             _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
         }
 
-        public string GetUserNameFromCookie()
+        public string GetUsernameFromCookie()
+        { 
+            var httpContext = _httpContextAccessor.HttpContext;
+
+            string userName = httpContext.Request.Cookies["Username"];
+
+            return userName;
+        }
+
+        public int GetUserIdFromCookie()
         {
             var httpContext = _httpContextAccessor.HttpContext;
 
-            string userName = httpContext.Request.Cookies["YourCookieName"];
-
-            return userName;
+            return Convert.ToInt32(httpContext.Request.Cookies["UserId"]); 
         }
 
         public string GetSessionValue(string key)
