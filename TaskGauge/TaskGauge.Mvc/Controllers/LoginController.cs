@@ -58,8 +58,9 @@ namespace TaskGauge.Mvc.Controllers
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(claimIdentity), authenticationProperties);
 
-            HttpContext.Session.SetString("Username", loginDto.Username);
-            
+            Response.Cookies.Append("Username", loginDto.Username);
+            Response.Cookies.Append("UserId", result);
+
             return RedirectToAction("Index", "Home");
         }
 
