@@ -59,20 +59,18 @@ namespace TaskGauge.DataAccessLayer.Concrete
         {
             try
             {
-                var isExistUsername = _taskGaugeContext.User.Where
-                    (x => x.Name.Equals(loginDto.Username)).Any();
-                if (!isExistUsername)
+                var userId = _taskGaugeContext.User.Where
+                    (x => x.Name.Equals(loginDto.Username)).FirstOrDefault();
+                if (userId == null)
                 {
                     return $"{TextResources.WrongUsername} Type: error";
                 }
                 var isAcceptLogin = _taskGaugeContext.User.Where
                     (x=>x.Password.Equals(CryptoPassword.EncryptPassword(loginDto.Password))).Any();
-                if (isAcceptLogin)
-                {
-                    return "Type: success";
-                }
-                return $"{TextResources.WrongPassword} Type: error";
+
+                return isAcceptLogin ? $"{userId.Id}" : $"{TextResources.WrongPassword} Type: error";
             }
+
             catch (Exception exception)
             {
                 return $"{exception.Message} Type: error";
