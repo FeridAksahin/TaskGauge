@@ -44,6 +44,7 @@ var connectionString = configuration.GetConnectionString("ConnectionStringForTas
 builder.Services.AddDbContext<TaskGaugeContext>(x => x.UseSqlServer(connectionString));
 builder.Services.AddScoped<TaskGaugeContext>();
 builder.Services.AddScoped<IUserDal, UserDal>();
+builder.Services.AddScoped<IRoomDal, RoomDal>();
 builder.Services.AddScoped<UserInformation>();
 
 builder.Services.AddSignalR();
