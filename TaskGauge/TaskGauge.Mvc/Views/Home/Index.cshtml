@@ -98,33 +98,91 @@
 
         function joinRoom() {
             var roomName = document.getElementById("roomName").value;
+
+            if (roomNameValidation(roomName) == "error") {
+                return
+            }
+
+            $.ajax({
+                url: taskGauge.urlList.join_room,
+                data: { roomName: roomName },
+                method: 'GET',
+                success: function(data) {
+                    debugger;
+                    if (data.includes("error")) {
+                        Swal.fire({
+                            text: data,
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        })
+                    }
+                    else {
+                        var roomName = document.getElementById("roomName").value;
+                        var url = '@Url.Action("Index", "Room")' + '?roomName=' + encodeURIComponent(roomName);
+                        window.location.href = url;
+                    }
+
+
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('Ajax Error:', textStatus, errorThrown);
+                    Swal.fire({
+                        text: 'Error occured.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+
         }
 
         function makeRoom() {
-            debugger;
             var roomName = document.getElementById("newRoomName").value;
-            //$.ajax({
-            //    url: taskGauge.urlList.new_room,
-            //    data: { roomName: roomName },
-            //    method: 'POST',
-            //    success: function(data) {
-            //        if (data.type == "error") {
-            //            Swal.fire({
-            //                text: data.message,
-            //                icon: 'error',
-            //                confirmButtonText: 'OK'
-            //            })
-            //        }
-            //    },
-            //    error: function(jqXHR, textStatus, errorThrown) { 
-            //        console.error('Ajax Error:', textStatus, errorThrown); 
-            //        Swal.fire({
-            //            text: 'Error occured.',
-            //            icon: 'error',
-            //            confirmButtonText: 'OK'
-            //        });
-            //    }
-            //});
+
+            if (roomNameValidation(roomName) == "error") {
+                return
+            }
+
+            $.ajax({
+                url: taskGauge.urlList.new_room,
+                data: { roomName: roomName },
+                method: 'POST',
+                success: function(data) {
+                    if (data != true) {
+                        Swal.fire({
+                            text: data,
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        })
+                    }
+                    else {
+                        var roomName = document.getElementById("newRoomName").value;
+                        var url = '@Url.Action("Index", "Room")' + '?roomName=' + encodeURIComponent(roomName);
+                        window.location.href = url;
+                    }
+
+
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('Ajax Error:', textStatus, errorThrown);
+                    Swal.fire({
+                        text: 'Error occured.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        }
+
+        function roomNameValidation(roomName) {
+            if (roomName.trim() == "") {
+                Swal.fire({
+                    text: "Room name can not empty.",
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                })
+                return "error";
+            }
         }
     </script>
 

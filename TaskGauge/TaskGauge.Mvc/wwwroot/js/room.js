@@ -10,8 +10,17 @@ connection.on("userJoined", function (username) {
     $('#participants').append('<li class="participant">' + username + '</li>');
 });
 
+connection.on("userList", function (roomUserList) {
+    for (var item = 0; item < roomUserList.length; item++) {
+        $('#participants').append('<li class="participant">' + roomUserList[item] + '</li>');
+    }
+});
+
+let urlParams = new URLSearchParams(window.location.search);
+let roomNameFromUrl = urlParams.get('roomName'); 
+
 connection.start().then(function () {
-    connection.invoke("joinRoom", "room1");
+    connection.invoke("joinRoom", roomNameFromUrl);
 }).catch(function (err) {
     return console.error(err.toString());
 });
