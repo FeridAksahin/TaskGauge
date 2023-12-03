@@ -1,6 +1,6 @@
 ﻿using TaskGauge.DataTransferObject;
 
-public class RoomStatic
+public static class RoomStatic
 {
 
     private static RoomStatic instance;
@@ -27,4 +27,5 @@ public class RoomStatic
     }
 
     public List<RoomUserDto> roomUser = new List<RoomUserDto>();
+    public List<Room> room = new List<Room>();
 }
