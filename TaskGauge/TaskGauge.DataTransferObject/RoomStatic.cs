@@ -1,6 +1,6 @@
 ﻿using TaskGauge.DataTransferObject;
 
-public static class RoomStatic
+public class RoomStatic
 {
 
     private static RoomStatic instance;
