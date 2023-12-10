@@ -31,5 +31,13 @@ namespace TaskGauge.DataAccessLayer.Concrete
             int result = _taskGaugeContext.SaveChanges();
             return result > 0;
         }
+
+        public bool IsTheLoggedInUserTheRoomAdministrator(string roomName)
+        {
+            return (from room in _taskGaugeContext.Room
+                   where room.Name.Equals(roomName) && 
+                   room.RoomAdminId.Equals(_userInformation.GetUserIdFromCookie())
+                   select room).Any();
+        }
     }
 }
