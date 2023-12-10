@@ -22,7 +22,13 @@ namespace TaskGauge.Mvc.Controllers
 
         public IActionResult Index(string roomName = "")
         {
-            return View();
+            bool isAdmin = false;
+            if (!string.IsNullOrEmpty(roomName))
+            {
+                isAdmin = _roomDal.IsTheLoggedInUserTheRoomAdministrator(roomName);
+            }
+            ViewBag.IsAdmin = isAdmin;
+            return View(isAdmin);
         }
 
         [HttpPost]

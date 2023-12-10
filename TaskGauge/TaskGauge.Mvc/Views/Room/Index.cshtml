@@ -1,4 +1,4 @@
-﻿@using TaskGauge.DataTransferObject 
+﻿@using TaskGauge.DataTransferObject
 <!DOCTYPE html>
 <html lang="en">
 
@@ -80,18 +80,20 @@
             <ul id="participants">
             </ul>
         </div>
-
-        <div id="task-section">
-            <h3>Task Section</h3>
-            <form id="taskForm">
-                <div class="form-group">
-                    <input type="text" class="form-control" id="taskName" placeholder="Enter Task Name" required>
-                </div>
-                <button type="button" class="btn btn-success" onclick="openTaskModal()">Add Task</button>
-            </form>
-            <ul id="taskList" class="task-list">
-            </ul>
-        </div>
+        @if ((bool)ViewBag.IsAdmin)
+        {
+            <div id="task-section">
+                <h3>Task Section</h3>
+                <form id="taskForm">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="taskName" placeholder="Enter Task Name" required>
+                    </div>
+                    <button type="button" class="btn btn-success" onclick="openTaskModal()">Add Task</button>
+                </form>
+                <ul id="taskList" class="task-list">
+                </ul>
+            </div>
+        }
     </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
@@ -126,5 +128,4 @@
         </div>
     </div>
 </body>
-
 </html>
