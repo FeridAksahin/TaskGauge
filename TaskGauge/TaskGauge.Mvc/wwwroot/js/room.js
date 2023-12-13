@@ -26,7 +26,7 @@ connection.start().then(function () {
 });
 
 connection.on("userLeft", function (username) {
-    $('#participants').append('<li class="participant">' + 'TEST' + '</li>');
+    $('#participants li:contains("' + username + '")').remove();
 });
 
 function addTask() {

@@ -9,15 +9,19 @@ namespace TaskGauge.Mvc.Controllers
     public class RoomController : Controller
     {
         RoomStatic roomUser = RoomStatic.Instance;
-
+        public static bool IsAllRoomExist = false;
         private IRoomDal _roomDal;
         private UserInformation _user;
 
 
         public RoomController(IRoomDal roomDal, UserInformation user)
-        {
+        { 
             _roomDal = roomDal;
             _user = user;
+            if (!IsAllRoomExist)
+            {
+                _roomDal.GetAllRoomIntoStaticList();
+            }
         }
 
         public IActionResult Index(string roomName = "")
