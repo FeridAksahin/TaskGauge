@@ -12,6 +12,7 @@ namespace TaskGauge.DataAccessLayer.Concrete
 {
     public class RoomDal : IRoomDal
     {
+        RoomStatic roomUser = RoomStatic.Instance;
         private TaskGaugeContext _taskGaugeContext;
         private UserInformation _userInformation;
         public RoomDal(TaskGaugeContext taskGaugeContext, UserInformation userInformation)
@@ -38,6 +39,20 @@ namespace TaskGauge.DataAccessLayer.Concrete
                    where room.Name.Equals(roomName) && 
                    room.RoomAdminId.Equals(_userInformation.GetUserIdFromCookie())
                    select room).Any();
+        }
+
+        public void GetAllRoomIntoStaticList()
+        {
+            var rooms = from room in _taskGaugeContext.Room
+                        select room;
+            foreach(var room in rooms)
+            {
+                roomUser.room.Add(new DataTransferObject.Room
+                {
+                    Name = room.Name,
+                    isActive = room.isActive
+                });
+            }
         }
     }
 }
