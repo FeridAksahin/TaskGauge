@@ -5,7 +5,7 @@ const connection = new signalR.HubConnectionBuilder()
     .build();
 
 connection.on("userJoined", function (username) {
-    console.log('User joined: ' + username); 
+    console.log('User joined: ' + username);
     debugger;
     $('#participants').append('<li class="participant">' + username + '</li>');
 });
@@ -17,7 +17,7 @@ connection.on("userList", function (roomUserList) {
 });
 
 let urlParams = new URLSearchParams(window.location.search);
-let roomNameFromUrl = urlParams.get('roomName'); 
+let roomNameFromUrl = urlParams.get('roomName');
 
 connection.start().then(function () {
     connection.invoke("joinRoom", roomNameFromUrl);
@@ -28,18 +28,6 @@ connection.start().then(function () {
 connection.on("userLeft", function (username) {
     $('#participants li:contains("' + username + '")').remove();
 });
-
-function addTask() {
-    let taskName = $('#taskName').val();
-    if (taskName.trim() !== "") {
-        let listItem = '<li class="task">' +
-            '<span>' + taskName + '</span>' +
-            '<button type="button" class="btn btn-primary btn-sm" onclick="openTaskModal()">Set Duration</button>' +
-            '</li>';
-        $('#taskList').append(listItem);
-        $('#taskName').val("");
-    }
-}
 
 function openTaskModal() {
     $('#taskModal').modal('show');
@@ -57,4 +45,39 @@ function updateParticipants(participantList) {
     participantList.forEach(function (participant) {
         $('#participants').append('<li class="participant">' + participant + '</li>');
     });
-} 
+}
+
+function addTask() {
+    let taskName = $('#taskName').val();
+
+    if (taskName.trim() !== "" && !isExistTaskName(taskName)) {
+        connection.invoke("addTask", taskName);
+    }
+}
+
+connection.on("addedTaskByAdmin", function (addTaskModel) {
+    debugger;
+    if (addTaskModel.isSuccess) {
+        let tableRow =
+            `<tr>
+            <td>${addTaskModel.taskName}</td>
+            <td>Continues</td>
+            <td><button type="button" class="btn btn-primary btn-sm" onclick="openTaskModal(${addTaskModel.taskName})">Detail</button></td>
+            <td><button type="button" class="btn btn-primary btn-sm" onclick="openTaskModal(${addTaskModel.taskName})">Delete</button></td>
+            </tr>`;
+
+        $('#taskHistoryTable').append(tableRow);
+    }
+    else {
+        Swal.fire({
+            text: addTaskModel.message,
+            icon: 'error',
+            confirmButtonText: 'OK'
+        })
+    }
+
+});
+
+function isExistTaskName(taskName) {
+    return false;
+}

@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace TaskGauge.DataTransferObject
 {
-    public class RoomUserDto
-    {
-        public string Username { get; set; }
+    public class TaskDto
+    { 
+        public string TaskName { get; set; } 
+        public DateTime RecordDate { get; set; } = DateTime.Now;  
+        public string RecordByName { get; set; }   
         public string RoomName { get; set; }
-        public bool IsItInTheRoom { get; set; }
-        public string ConnectionId { get; set; }
     }
 }
