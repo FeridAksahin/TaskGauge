@@ -11,5 +11,6 @@ namespace TaskGauge.DataTransferObject
         public string Username { get; set; }
         public string RoomName { get; set; }
         public bool IsItInTheRoom { get; set; }
+        public string ConnectionId { get; set; }
     }
 }
