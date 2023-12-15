@@ -88,7 +88,7 @@
                     <div class="form-group">
                         <input type="text" class="form-control" id="taskName" placeholder="Enter Task Name" required>
                     </div>
-                    <button type="button" class="btn btn-success" onclick="openTaskModal()">Add Task</button>
+                    <button type="button" class="btn btn-success" onclick="addTask()">Add Task</button>
                 </form>
                 <ul id="taskList" class="task-list">
                 </ul>
@@ -99,7 +99,7 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="~/js/microsoft/signalr/dist/webworker/signalr.min.js"></script>
     <script src="~/js/microsoft/signalr/dist/webworker/signalr.js"></script>
-    <script src="~/js/room.js?v=1"></script>
+    <script src="~/js/room.js"></script>
 
     <div class="modal fade" id="taskModal" tabindex="-1" role="dialog" aria-labelledby="taskModalLabel"
          aria-hidden="true">
@@ -127,5 +127,25 @@
             </div>
         </div>
     </div>
+
+
+
+    <div id="task-section"> 
+    <h4>Task History</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Statu</th>
+                <th>Detail</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody id="taskHistoryTable">
+            
+        </tbody>
+    </table>
+</div>
+
 </body>
 </html>
