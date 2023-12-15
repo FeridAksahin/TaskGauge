@@ -2,6 +2,7 @@
 using System;
 using System.Threading.Tasks;
 using TaskGauge.DataTransferObject;
+using TaskGauge.ViewModel;
 
 namespace TaskGauge.Mvc.Hubs
 {
@@ -16,6 +17,7 @@ namespace TaskGauge.Mvc.Hubs
             roomMember.IsItInTheRoom = true;
             roomMember.RoomName = roomName;
             roomMember.Username = username;
+            roomMember.ConnectionId = Context.ConnectionId;
             if (!roomUserStatic.roomUser.Exists(x => x.Username == username))
             {
                 roomUserStatic.roomUser.Add(roomMember);
@@ -28,12 +30,54 @@ namespace TaskGauge.Mvc.Hubs
             else if (roomUserStatic.roomUser.Exists(x => x.Username == username && !x.IsItInTheRoom))
             {
                 roomUserStatic.roomUser.ForEach(user => user.IsItInTheRoom = user.Username == username ? true : user.IsItInTheRoom);
+                roomUserStatic.roomUser.ForEach(user => user.ConnectionId = user.Username == username ? roomMember.ConnectionId : user.ConnectionId);
                 var roomUserList = GetTheNameOfTheUsersInTheRoom(roomUserStatic.roomUser, roomName);
                 await Groups.AddToGroupAsync(Context.ConnectionId, roomName);
                 await Clients.OthersInGroup(roomName).SendAsync("userJoined", username);
                 await Clients.Caller.SendAsync("userList", roomUserList);
             }
         }
+
+        public async Task AddTask(string taskName)
+        {
+            var user = roomUserStatic.roomUser.Where(x => x.ConnectionId.Equals(Context.ConnectionId)).FirstOrDefault();
+            var roomName = user.RoomName;
+
+            var isExistTaskName = roomUserStatic.allRoomTask.Exists(x => x.TaskName.Equals(taskName));
+
+            AddTaskViewModel addTaskModel = new AddTaskViewModel()
+            {
+                TaskName = taskName
+            };
+
+            if (isExistTaskName)
+            {
+                addTaskModel = new AddTaskViewModel()
+                {
+                    IsSuccess = false,
+                    Message = "Task name is exist."
+                };
+            }
+            else
+            {
+                addTaskModel = new AddTaskViewModel()
+                {
+                    TaskName = taskName,
+                    IsSuccess = true
+                };
+                roomUserStatic.allRoomTask.Add(new TaskDto
+                {
+                    RecordByName = user.Username,
+                    RecordDate = DateTime.Now,
+                    RoomName = roomName,
+                    TaskName = taskName
+                });
+            }
+
+            await Clients.Caller.SendAsync("addedTaskByAdmin", addTaskModel);
+
+        }
+
         public override async Task OnDisconnectedAsync(Exception exception)
         {
 
@@ -44,14 +88,14 @@ namespace TaskGauge.Mvc.Hubs
             await Clients.OthersInGroup(roomName).SendAsync("userLeft", username);
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomName);
             await base.OnDisconnectedAsync(exception);
-        } 
+        }
 
         private List<string> GetTheNameOfTheUsersInTheRoom(List<RoomUserDto> userList, string roomName)
         {
             List<string> requestRoomUserList = new List<string>();
-            foreach(var item in userList)
+            foreach (var item in userList)
             {
-                if(item.RoomName == roomName && item.IsItInTheRoom)
+                if (item.RoomName == roomName && item.IsItInTheRoom)
                 {
                     requestRoomUserList.Add(item.Username);
                 }
