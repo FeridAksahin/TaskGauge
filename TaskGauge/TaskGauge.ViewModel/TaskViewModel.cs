@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace TaskGauge.ViewModel
 {
-    public class AddTaskViewModel
+    public class TaskViewModel
     {
         public string TaskName { get; set; }
         public string Message { get; set; } 
-        public bool IsSuccess { get; set; }
+        public bool IsSuccess { get; set; }  
     }
 }
