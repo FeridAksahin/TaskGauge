@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TaskGauge.Common;
 using TaskGauge.DataAccessLayer.Interface;
 using TaskGauge.DataTransferObject;
@@ -6,6 +7,8 @@ using TaskGauge.ViewModel;
 
 namespace TaskGauge.Mvc.Controllers
 {
+
+    [Authorize]
     public class RoomController : Controller
     {
         RoomStatic roomUser = RoomStatic.Instance;
@@ -15,7 +18,7 @@ namespace TaskGauge.Mvc.Controllers
 
 
         public RoomController(IRoomDal roomDal, UserInformation user)
-        { 
+        {
             _roomDal = roomDal;
             _user = user;
             if (!IsAllRoomExist)
@@ -71,14 +74,14 @@ namespace TaskGauge.Mvc.Controllers
                     else if (item.Name.Equals(roomName) && !item.isActive)
                     {
                         return "error: The room is closed.";
-                    } 
+                    }
                 }
                 return "error: The room entered does not exist.";
             }
             catch(Exception exception)
             {
                 return $"error: {exception.Message}";
-            } 
-        } 
+            }
+        }
     }
 }
