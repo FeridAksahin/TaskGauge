@@ -1,5 +1,4 @@
-﻿
-const connection = new signalR.HubConnectionBuilder()
+﻿const connection = new signalR.HubConnectionBuilder()
     .withUrl("/taskGaugeHub")
     .configureLogging(signalR.LogLevel.Information)
     .build();
@@ -55,28 +54,49 @@ function addTask() {
     }
 }
 
-connection.on("addedTaskByAdmin", function (addTaskModel) {
-    debugger;
-    if (addTaskModel.isSuccess) {
+connection.on("addedTaskByAdmin", function (taskModel) { 
+    addedNewTask(taskModel, true);
+
+});
+
+connection.on("newTask", function (taskModel) {
+    addedNewTask(taskModel, false);
+})
+
+function addedNewTask(taskModel, isAdmin) {
+    if (taskModel.isSuccess) {
+        let tableButtonContent = getTableContentAccordingToUserType(isAdmin, taskModel.taskName);
         let tableRow =
             `<tr>
-            <td>${addTaskModel.taskName}</td>
-            <td>Continues</td>
-            <td><button type="button" class="btn btn-primary btn-sm" onclick="openTaskModal(${addTaskModel.taskName})">Detail</button></td>
-            <td><button type="button" class="btn btn-primary btn-sm" onclick="openTaskModal(${addTaskModel.taskName})">Delete</button></td>
+            <td>${taskModel.taskName}</td>
+            <td>Open</td>
+            ${tableButtonContent.detailButton}
+            ${tableButtonContent.deleteButton}
             </tr>`;
 
         $('#taskHistoryTable').append(tableRow);
     }
     else {
         Swal.fire({
-            text: addTaskModel.message,
+            text: taskModel.message,
             icon: 'error',
             confirmButtonText: 'OK'
         })
     }
+}
 
-});
+function getTableContentAccordingToUserType(isAdmin, taskName) {
+    let model = { detailButton: null, deleteButton: null };
+
+    if (isAdmin) {
+        model.detailButton = `<td><button type="button" class="btn btn-primary btn-sm" onclick="openTaskModal(${taskName})">Detail</button></td>`
+        model.deleteButton = `<td><button type="button" class="btn btn-primary btn-sm" onclick="openTaskModal(${taskName})">Delete</button></td>`
+    }
+    else {
+        model.detailButton = `<td><button type="button" class="btn btn-primary btn-sm" onclick="openTaskModal(${taskName})">Add Effort</button></td>`
+    }
+    return model;
+}
 
 function isExistTaskName(taskName) {
     return false;
