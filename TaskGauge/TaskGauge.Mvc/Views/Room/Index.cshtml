@@ -130,22 +130,28 @@
 
 
 
-    <div id="task-section"> 
-    <h4>Task History</h4>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Statu</th>
-                <th>Detail</th>
-                <th>Delete</th>
-            </tr>
-        </thead>
-        <tbody id="taskHistoryTable">
-            
-        </tbody>
-    </table>
-</div>
+    <div id="task-section">
+        <h4>Task History</h4>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Statu</th>
+                    @if ((bool)ViewBag.IsAdmin)
+                    {
+                        <th>Detail</th>
+                        <th>Delete</th>
+                    }
+                    else
+                    {
+                        <th>Effort</th>
+                    }
+                </tr>
+            </thead>
+            <tbody id="taskHistoryTable">
+            </tbody>
+        </table>
+    </div>
 
 </body>
 </html>
