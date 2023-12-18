@@ -45,14 +45,14 @@ namespace TaskGauge.Mvc.Hubs
 
             var isExistTaskName = roomUserStatic.allRoomTask.Exists(x => x.TaskName.Equals(taskName));
 
-            AddTaskViewModel addTaskModel = new AddTaskViewModel()
+            TaskViewModel taskModel = new TaskViewModel()
             {
                 TaskName = taskName
             };
 
             if (isExistTaskName)
             {
-                addTaskModel = new AddTaskViewModel()
+                taskModel = new TaskViewModel()
                 {
                     IsSuccess = false,
                     Message = "Task name is exist."
@@ -60,7 +60,7 @@ namespace TaskGauge.Mvc.Hubs
             }
             else
             {
-                addTaskModel = new AddTaskViewModel()
+                taskModel = new TaskViewModel()
                 {
                     TaskName = taskName,
                     IsSuccess = true
@@ -74,8 +74,8 @@ namespace TaskGauge.Mvc.Hubs
                 });
             }
 
-            await Clients.Caller.SendAsync("addedTaskByAdmin", addTaskModel);
-
+            await Clients.Caller.SendAsync("addedTaskByAdmin", taskModel);
+            await Clients.OthersInGroup(roomName).SendAsync("newTask", taskModel);
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
