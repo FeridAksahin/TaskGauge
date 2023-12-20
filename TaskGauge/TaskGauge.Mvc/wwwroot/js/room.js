@@ -17,9 +17,10 @@ connection.on("userList", function (roomUserList) {
 
 let urlParams = new URLSearchParams(window.location.search);
 let roomNameFromUrl = urlParams.get('roomName');
+let isAdmin = document.getElementById('isAdmin').value;
 
 connection.start().then(function () {
-    connection.invoke("joinRoom", roomNameFromUrl);
+    connection.invoke("joinRoom", roomNameFromUrl, isAdmin);
 }).catch(function (err) {
     return console.error(err.toString());
 });
@@ -28,14 +29,23 @@ connection.on("userLeft", function (username) {
     $('#participants li:contains("' + username + '")').remove();
 });
 
-function openTaskModal() {
+function openTaskModal(taskName) {
     $('#taskModal').modal('show');
+
+    let setDurationButton = document.querySelector('#taskModal .modal-body .btn-success');
+    if (setDurationButton) { 
+        setDurationButton.onclick = function () {
+            setTaskDuration(taskName);
+        };
+    } else { 
+        $('#taskModal .modal-body').append(`<button type="button" class="btn btn-success" onclick="setTaskDuration('${taskName}')">Set Duration</button>`);
+    }
+
 }
 
-function setTaskDuration() {
-    let taskDuration = $('#taskDuration').val();
-    let selectedTask = $('.task.active');
-    selectedTask.find('.task-duration').text(' - ' + taskDuration + ' point(s)');
+function setTaskDuration(taskName) {
+    let taskEffortDuration = $('#taskDuration').val();
+    connection.invoke("taskEffort", taskName, taskEffortDuration);
     $('#taskModal').modal('hide');
 }
 
@@ -52,7 +62,7 @@ function addTask() {
     if (taskName.trim() !== "" && !isExistTaskName(taskName)) {
         connection.invoke("addTask", taskName);
     }
-}
+} 
 
 connection.on("addedTaskByAdmin", function (taskModel) { 
     addedNewTask(taskModel, true);
@@ -63,6 +73,10 @@ connection.on("newTask", function (taskModel) {
     addedNewTask(taskModel, false);
 })
 
+connection.on("getEffort", function (taskEffortList) {
+    debugger;
+})
+
 function addedNewTask(taskModel, isAdmin) {
     if (taskModel.isSuccess) {
         let tableButtonContent = getTableContentAccordingToUserType(isAdmin, taskModel.taskName);
@@ -70,11 +84,16 @@ function addedNewTask(taskModel, isAdmin) {
             `<tr>
             <td>${taskModel.taskName}</td>
             <td>Open</td>
-            ${tableButtonContent.detailButton}
+            ${tableButtonContent.detailOrButton}
             ${tableButtonContent.deleteButton}
             </tr>`;
 
-        $('#taskHistoryTable').append(tableRow);
+        if (isAdmin) {
+            $('#taskHistoryTable').append(tableRow);
+        }
+        else { 
+            $('#taskHistoryTableForNormalUser').append(tableRow);
+        }
     }
     else {
         Swal.fire({
@@ -86,14 +105,14 @@ function addedNewTask(taskModel, isAdmin) {
 }
 
 function getTableContentAccordingToUserType(isAdmin, taskName) {
-    let model = { detailButton: null, deleteButton: null };
+    let model = { detailOrButton: null, deleteButton: null };
 
     if (isAdmin) {
-        model.detailButton = `<td><button type="button" class="btn btn-primary btn-sm" onclick="openTaskModal(${taskName})">Detail</button></td>`
-        model.deleteButton = `<td><button type="button" class="btn btn-primary btn-sm" onclick="openTaskModal(${taskName})">Delete</button></td>`
+        model.detailOrButton = `<td><button type="button" class="btn btn-primary btn-sm">Detail</button></td>`
+        model.deleteButton = `<td><button type="button" class="btn btn-primary btn-sm">Delete</button></td>`
     }
     else {
-        model.detailButton = `<td><button type="button" class="btn btn-primary btn-sm" onclick="openTaskModal(${taskName})">Add Effort</button></td>`
+        model.detailOrButton = `<td><button type="button" class="btn btn-primary btn-sm" onclick="openTaskModal('${taskName}')">Add Effort</button></td>`
     }
     return model;
 }
