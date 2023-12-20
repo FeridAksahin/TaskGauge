@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using TaskGauge.DataTransferObject;
 using TaskGauge.ViewModel;
@@ -9,7 +10,7 @@ namespace TaskGauge.Mvc.Hubs
     public class TaskGaugeHub : Hub
     {
         RoomStatic roomUserStatic = RoomStatic.Instance;
-        public async Task JoinRoom(string roomName)
+        public async Task JoinRoom(string roomName, string isAdmin)
         {
             var httpContext = Context.GetHttpContext();
             var username = httpContext.Request.Cookies["Username"];
@@ -17,6 +18,7 @@ namespace TaskGauge.Mvc.Hubs
             roomMember.IsItInTheRoom = true;
             roomMember.RoomName = roomName;
             roomMember.Username = username;
+            roomMember.IsAdmin = bool.TryParse(isAdmin, out var isAdminBool);
             roomMember.ConnectionId = Context.ConnectionId;
             if (!roomUserStatic.roomUser.Exists(x => x.Username == username))
             {
@@ -88,6 +90,35 @@ namespace TaskGauge.Mvc.Hubs
             await Clients.OthersInGroup(roomName).SendAsync("userLeft", username);
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomName);
             await base.OnDisconnectedAsync(exception);
+        }
+
+        public async Task TaskEffort(string taskName, string taskEffortDuration)
+        {
+            var user = roomUserStatic.roomUser.Where(x => x.ConnectionId.Equals(Context.ConnectionId)).FirstOrDefault();
+            var isExistEffort = false;
+            var taskEffort = Convert.ToDouble(taskEffortDuration, CultureInfo.InvariantCulture);
+            foreach (var item in roomUserStatic.taskEffortList)
+            {
+                if (item.TaskName.Equals(taskName) && item.Username.Equals(user.Username) && item.RoomName.Equals(user.RoomName))
+                {
+                    isExistEffort = true;
+                    item.Effort = taskEffort;
+                }
+            }
+
+            if (!isExistEffort)
+            {
+                roomUserStatic.taskEffortList.Add(new TaskEffortViewModel
+                {
+                    Effort = taskEffort,
+                    TaskName = taskName,
+                    Username = user.Username,
+                    RoomName = user.RoomName
+                });
+            }
+            var adminConnectionId = roomUserStatic.roomUser.Where(x => x.RoomName.Equals(user.RoomName) && x.IsAdmin).FirstOrDefault().ConnectionId;
+            await Clients.Client(adminConnectionId).SendAsync("getEffort", roomUserStatic.taskEffortList);
+       
         }
 
         private List<string> GetTheNameOfTheUsersInTheRoom(List<RoomUserDto> userList, string roomName)
