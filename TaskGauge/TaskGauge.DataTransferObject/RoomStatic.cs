@@ -1,4 +1,5 @@
 ﻿using TaskGauge.DataTransferObject;
+using TaskGauge.ViewModel;
 
 public class RoomStatic
 {
@@ -29,4 +30,5 @@ public class RoomStatic
     public List<RoomUserDto> roomUser = new List<RoomUserDto>();
     public List<Room> room = new List<Room>();
     public List<TaskDto> allRoomTask = new List<TaskDto>();
+    public List<TaskEffortViewModel> taskEffortList = new List<TaskEffortViewModel>();
 }

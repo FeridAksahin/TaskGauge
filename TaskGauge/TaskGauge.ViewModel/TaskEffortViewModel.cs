@@ -4,14 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TaskGauge.DataTransferObject
+namespace TaskGauge.ViewModel
 {
-    public class RoomUserDto
+    public class TaskEffortViewModel
     {
         public string Username { get; set; }
+        public double Effort { get; set; }
+        public string TaskName { get; set; }
         public string RoomName { get; set; }
-        public bool IsItInTheRoom { get; set; }
-        public string ConnectionId { get; set; }
-        public bool IsAdmin { get; set; } = false;
     }
 }
