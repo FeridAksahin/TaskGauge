@@ -74,7 +74,7 @@
 </head>
 
 <body>
-<input type="hidden" id="isAdmin" value="@(ViewBag.IsAdmin.ToString().ToLower())" />
+    <input type="hidden" id="isAdmin" value="@(ViewBag.IsAdmin.ToString().ToLower())" />
 
 
     <div class="container-fluid">
@@ -96,18 +96,18 @@
                 </form>
             }
             else
-            {  
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Statu</th>
-                                <th>Effort</th>
-                            </tr>
-                        </thead>
-                        <tbody id="taskHistoryTableForNormalUser">
-                        </tbody>
-                    </table> 
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Statu</th>
+                            <th>Effort</th>
+                        </tr>
+                    </thead>
+                    <tbody id="taskHistoryTableForNormalUser">
+                    </tbody>
+                </table>
 
             }
             <ul id="taskList" class="task-list">
@@ -119,7 +119,7 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="~/js/microsoft/signalr/dist/webworker/signalr.min.js"></script>
     <script src="~/js/microsoft/signalr/dist/webworker/signalr.js"></script>
-    <script src="~/js/room.js?v=3"></script>
+    <script src="~/js/room.js"></script>
 
     <div class="modal fade" id="taskModal" tabindex="-1" role="dialog" aria-labelledby="taskModalLabel"
          aria-hidden="true">
@@ -180,5 +180,31 @@
             </table>
         </div>
     }
+
+    <div class="modal fade" id="taskDetailModal" tabindex="-1" role="dialog" aria-labelledby="taskModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div id="task-section">
+                            <h4>Task History</h4>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Effort</th> 
+                                    </tr>
+                                </thead>
+                                <tbody id="taskDetailTable">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

@@ -33,12 +33,40 @@ function openTaskModal(taskName) {
     $('#taskModal').modal('show');
 
     let setDurationButton = document.querySelector('#taskModal .modal-body .btn-success');
-    if (setDurationButton) { 
+    if (setDurationButton) {
         setDurationButton.onclick = function () {
             setTaskDuration(taskName);
         };
-    } else { 
+    } else {
         $('#taskModal .modal-body').append(`<button type="button" class="btn btn-success" onclick="setTaskDuration('${taskName}')">Set Duration</button>`);
+    }
+
+}
+let taskEfforts;
+let openedTaskName;
+function taskDetail(taskName) {
+    openedTaskName = taskName;
+    let tds = document.querySelectorAll("#taskDetailModal td");
+
+
+    tds.forEach(function (td) {
+        td.parentNode.removeChild(td);
+    });
+
+    $('#taskDetailModal').modal('show');
+    if (taskEfforts != null) {
+        for (const element of taskEfforts) {
+            if (taskName == element.taskName) {
+                let tableRow =
+                    `<tr>
+                 <td>${element.username}</td> 
+                 <td id = "${element.username}">${element.effort}</td>  
+                </tr>`;
+
+                $('#taskDetailTable').append(tableRow);
+
+            }
+        }
     }
 
 }
@@ -62,9 +90,9 @@ function addTask() {
     if (taskName.trim() !== "" && !isExistTaskName(taskName)) {
         connection.invoke("addTask", taskName);
     }
-} 
+}
 
-connection.on("addedTaskByAdmin", function (taskModel) { 
+connection.on("addedTaskByAdmin", function (taskModel) {
     addedNewTask(taskModel, true);
 
 });
@@ -74,7 +102,24 @@ connection.on("newTask", function (taskModel) {
 })
 
 connection.on("getEffort", function (taskEffortList) {
-    debugger;
+
+    taskEfforts = taskEffortList;
+
+    if ($("#taskDetailModal").css("display") === "block") {
+        for (let item = 0; item < taskEfforts.length; item++) {
+            if (document.getElementById(`${taskEfforts[item].username}`) != null && openedTaskName == taskEfforts[item].taskName) {
+                document.getElementById(`${taskEfforts[item].username}`).innerHTML = taskEfforts[item].effort
+            } else if (openedTaskName == taskEfforts[item].taskName) {
+                let tableRow =
+                    `<tr>
+                 <td>${taskEfforts[item].username}</td> 
+                 <td id = "${taskEfforts[item].username}">${taskEfforts[item].effort}</td>  
+                </tr>`;
+
+                $('#taskDetailTable').append(tableRow);
+            }
+        }
+    }
 })
 
 function addedNewTask(taskModel, isAdmin) {
@@ -91,7 +136,7 @@ function addedNewTask(taskModel, isAdmin) {
         if (isAdmin) {
             $('#taskHistoryTable').append(tableRow);
         }
-        else { 
+        else {
             $('#taskHistoryTableForNormalUser').append(tableRow);
         }
     }
@@ -108,7 +153,7 @@ function getTableContentAccordingToUserType(isAdmin, taskName) {
     let model = { detailOrButton: null, deleteButton: null };
 
     if (isAdmin) {
-        model.detailOrButton = `<td><button type="button" class="btn btn-primary btn-sm">Detail</button></td>`
+        model.detailOrButton = `<td><button type="button" class="btn btn-primary btn-sm" onclick = "taskDetail('${taskName}')">Detail</button></td>`
         model.deleteButton = `<td><button type="button" class="btn btn-primary btn-sm">Delete</button></td>`
     }
     else {
