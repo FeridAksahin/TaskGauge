@@ -16,9 +16,7 @@ namespace TaskGauge.Common
         { 
             var httpContext = _httpContextAccessor.HttpContext;
 
-            string userName = httpContext.Request.Cookies["Username"];
-
-            return userName;
+            return httpContext.Request.Cookies["Username"]; 
         }
 
         public int GetUserIdFromCookie()

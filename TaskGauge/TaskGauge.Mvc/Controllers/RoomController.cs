@@ -24,6 +24,8 @@ namespace TaskGauge.Mvc.Controllers
             if (!IsAllRoomExist)
             {
                 _roomDal.GetAllRoomIntoStaticList();
+                _roomDal.GetAllTaskIntoStaticList();
+                IsAllRoomExist = true;
             }
         }
 
@@ -71,12 +73,9 @@ namespace TaskGauge.Mvc.Controllers
                     {
                         return "success";
                     }
-                    else if (item.Name.Equals(roomName) && !item.isActive)
-                    {
-                        return "error: The room is closed.";
-                    }
                 }
-                return "error: The room entered does not exist.";
+
+                return _roomDal.IsExistRoomName(roomName) ? "error: The room is closed." : "error: The room entered does not exist.";
             }
             catch(Exception exception)
             {

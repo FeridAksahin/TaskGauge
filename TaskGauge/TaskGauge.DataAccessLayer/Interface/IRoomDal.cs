@@ -12,5 +12,7 @@ namespace TaskGauge.DataAccessLayer.Interface
         public bool AddRoom(string roomName);
         public bool IsTheLoggedInUserTheRoomAdministrator(string roomName);
         public void GetAllRoomIntoStaticList();
+        public void GetAllTaskIntoStaticList();
+        public bool IsExistRoomName(string roomName);
     }
 }
