@@ -13,5 +13,6 @@ namespace TaskGauge.DataTransferObject
         public bool IsItInTheRoom { get; set; }
         public string ConnectionId { get; set; }
         public bool IsAdmin { get; set; } = false;
+        public int UserId { get; set; }
     }
 }

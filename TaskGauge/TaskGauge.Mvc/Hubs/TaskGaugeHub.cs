@@ -2,6 +2,7 @@
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
+using TaskGauge.Common;
 using TaskGauge.DataTransferObject;
 using TaskGauge.ViewModel;
 
@@ -10,6 +11,7 @@ namespace TaskGauge.Mvc.Hubs
     public class TaskGaugeHub : Hub
     {
         RoomStatic roomUserStatic = RoomStatic.Instance;
+        private UserInformation _user;
         public async Task JoinRoom(string roomName, string isAdmin)
         {
             var httpContext = Context.GetHttpContext();
@@ -18,8 +20,10 @@ namespace TaskGauge.Mvc.Hubs
             roomMember.IsItInTheRoom = true;
             roomMember.RoomName = roomName;
             roomMember.Username = username;
+            roomMember.UserId = Convert.ToInt32(httpContext.Request.Cookies["UserId"]);
             roomMember.IsAdmin = bool.TryParse(isAdmin, out var isAdminBool);
             roomMember.ConnectionId = Context.ConnectionId;
+            var roomTaskList = GetRoomTaskList(roomUserStatic.allRoomTask, roomName);
             if (!roomUserStatic.roomUser.Exists(x => x.Username == username))
             {
                 roomUserStatic.roomUser.Add(roomMember);
@@ -27,6 +31,7 @@ namespace TaskGauge.Mvc.Hubs
                 await Groups.AddToGroupAsync(Context.ConnectionId, roomName);
                 await Clients.OthersInGroup(roomName).SendAsync("userJoined", username);
                 await Clients.Caller.SendAsync("userList", roomUserList);
+                
 
             }
             else if (roomUserStatic.roomUser.Exists(x => x.Username == username && !x.IsItInTheRoom))
@@ -36,8 +41,15 @@ namespace TaskGauge.Mvc.Hubs
                 var roomUserList = GetTheNameOfTheUsersInTheRoom(roomUserStatic.roomUser, roomName);
                 await Groups.AddToGroupAsync(Context.ConnectionId, roomName);
                 await Clients.OthersInGroup(roomName).SendAsync("userJoined", username);
-                await Clients.Caller.SendAsync("userList", roomUserList);
+                await Clients.Caller.SendAsync("userList", roomUserList); 
             }
+            await Clients.Caller.SendAsync("addTaskForJoinedUser", roomTaskList);
+            if (Convert.ToBoolean(isAdmin))
+            {
+                var adminConnectionId = roomUserStatic.roomUser.Where(x => x.RoomName.Equals(roomName) && x.IsAdmin).FirstOrDefault().ConnectionId;
+                await Clients.Client(adminConnectionId).SendAsync("allTaskEffortForJoinedAdminUser", roomUserStatic.taskEffortList);
+            }
+        
         }
 
         public async Task AddTask(string taskName)
@@ -69,7 +81,7 @@ namespace TaskGauge.Mvc.Hubs
                 };
                 roomUserStatic.allRoomTask.Add(new TaskDto
                 {
-                    RecordByName = user.Username,
+                    RecordBy = user.UserId,
                     RecordDate = DateTime.Now,
                     RoomName = roomName,
                     TaskName = taskName
@@ -82,7 +94,6 @@ namespace TaskGauge.Mvc.Hubs
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-
             var httpContext = Context.GetHttpContext();
             var username = httpContext.Request.Cookies["Username"];
             var roomName = roomUserStatic.roomUser.FirstOrDefault(x => x.Username == username).RoomName;
@@ -132,6 +143,19 @@ namespace TaskGauge.Mvc.Hubs
                 }
             }
             return requestRoomUserList;
+        }
+
+        private List<string> GetRoomTaskList(List<TaskDto> allTask, string roomName)
+        {
+            List<string> requestRoomTaskList = new List<string>();
+            foreach (var item in allTask)
+            {
+                if (item.RoomName == roomName)
+                {
+                    requestRoomTaskList.Add(item.TaskName);
+                }
+            }
+            return requestRoomTaskList;
         }
     }
 }

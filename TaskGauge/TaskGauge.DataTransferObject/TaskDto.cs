@@ -10,7 +10,7 @@ namespace TaskGauge.DataTransferObject
     { 
         public string TaskName { get; set; } 
         public DateTime RecordDate { get; set; } = DateTime.Now;  
-        public string RecordByName { get; set; }   
+        public int RecordBy { get; set; }   
         public string RoomName { get; set; }
     }
 }

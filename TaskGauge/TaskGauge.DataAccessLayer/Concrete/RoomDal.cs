@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TaskGauge.Common;
-using TaskGauge.DataAccessLayer.Interface;
+using TaskGauge.DataAccessLayer.Interface; 
 using TaskGauge.Entity.Context;
 using TaskGauge.Entity.Entity;
 
@@ -44,6 +44,7 @@ namespace TaskGauge.DataAccessLayer.Concrete
         public void GetAllRoomIntoStaticList()
         {
             var rooms = from room in _taskGaugeContext.Room
+                        where room.isActive
                         select room;
             foreach(var room in rooms)
             {
@@ -51,6 +52,27 @@ namespace TaskGauge.DataAccessLayer.Concrete
                 {
                     Name = room.Name,
                     isActive = room.isActive
+                });
+            }
+        }
+
+        public bool IsExistRoomName(string roomName)
+        {
+            return _taskGaugeContext.Room.ToList().Exists(x => x.Name == roomName);
+        }
+
+        public void GetAllTaskIntoStaticList()
+        {
+            var tasks = from task in _taskGaugeContext.Task
+                        select task;
+            foreach (var task in tasks)
+            {
+                roomUser.allRoomTask.Add(new DataTransferObject.TaskDto
+                {
+                    RecordBy = task.RecordBy,
+                    RecordDate = task.RecordDate,
+                    RoomName = task.Room.Name,
+                    TaskName = task.Name
                 });
             }
         }
