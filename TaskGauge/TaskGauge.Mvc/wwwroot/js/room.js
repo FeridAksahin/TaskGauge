@@ -3,9 +3,7 @@
     .configureLogging(signalR.LogLevel.Information)
     .build();
 
-connection.on("userJoined", function (username) {
-    console.log('User joined: ' + username);
-    debugger;
+connection.on("userJoined", function (username) { 
     $('#participants').append('<li class="participant">' + username + '</li>');
 });
 
@@ -120,6 +118,32 @@ connection.on("getEffort", function (taskEffortList) {
             }
         }
     }
+}) 
+
+connection.on("addTaskForJoinedUser", function (taskList) {
+    
+    let booleanValueIsAdmin = JSON.parse(isAdmin);
+    for (const taskName of taskList) {
+        let tableButtonContent = getTableContentAccordingToUserType(booleanValueIsAdmin, taskName);
+        let tableRow =
+            `<tr>
+            <td>${taskName}</td>
+            <td>Open</td>
+            ${tableButtonContent.detailOrButton}
+            ${tableButtonContent.deleteButton}
+            </tr>`;
+
+        if (booleanValueIsAdmin) {
+            $('#taskHistoryTable').append(tableRow);
+        }
+        else {
+            $('#taskHistoryTableForNormalUser').append(tableRow);
+        }
+    }
+})
+
+connection.on("allTaskEffortForJoinedAdminUser", function (allTaskEffortList) {
+    taskEfforts = allTaskEffortList;
 })
 
 function addedNewTask(taskModel, isAdmin) {
