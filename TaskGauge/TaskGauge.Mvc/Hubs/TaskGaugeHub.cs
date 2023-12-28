@@ -11,7 +11,7 @@ namespace TaskGauge.Mvc.Hubs
     public class TaskGaugeHub : Hub
     {
         RoomStatic roomUserStatic = RoomStatic.Instance;
-        private UserInformation _user;
+        private static Dictionary<string, string> _openOrClosedTask = new Dictionary<string, string>();
         public async Task JoinRoom(string roomName, string isAdmin)
         {
             var httpContext = Context.GetHttpContext();
@@ -132,6 +132,20 @@ namespace TaskGauge.Mvc.Hubs
        
         }
 
+        public async Task OpenOrCloseTask(string taskSituation, string taskName)
+        {
+            if (!_openOrClosedTask.ContainsKey(taskName))
+            {
+                _openOrClosedTask.Add(taskName, taskSituation);
+            }
+            else
+            {
+                _openOrClosedTask[taskName] = taskSituation;    
+            }
+            var roomName = roomUserStatic.roomUser.FirstOrDefault(x => x.ConnectionId.Equals(Context.ConnectionId)).RoomName;
+            await Clients.OthersInGroup(roomName).SendAsync("changeTaskSituation", taskSituation, taskName);
+        }
+
         private List<string> GetTheNameOfTheUsersInTheRoom(List<RoomUserDto> userList, string roomName)
         {
             List<string> requestRoomUserList = new List<string>();
@@ -145,14 +159,14 @@ namespace TaskGauge.Mvc.Hubs
             return requestRoomUserList;
         }
 
-        private List<string> GetRoomTaskList(List<TaskDto> allTask, string roomName)
+        private List<RoomTaskForNewJoinedUserViewModel> GetRoomTaskList(List<TaskDto> allTask, string roomName)
         {
-            List<string> requestRoomTaskList = new List<string>();
+            List<RoomTaskForNewJoinedUserViewModel> requestRoomTaskList = new List<RoomTaskForNewJoinedUserViewModel>();
             foreach (var item in allTask)
             {
                 if (item.RoomName == roomName)
                 {
-                    requestRoomTaskList.Add(item.TaskName);
+                    requestRoomTaskList.Add(new RoomTaskForNewJoinedUserViewModel { TaskName = item.TaskName, TaskSituation = _openOrClosedTask.ContainsKey(item.TaskName) ? _openOrClosedTask[item.TaskName] : "Open" });
                 }
             }
             return requestRoomTaskList;

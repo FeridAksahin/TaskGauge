@@ -26,8 +26,9 @@ connection.start().then(function () {
 connection.on("userLeft", function (username) {
     $('#participants li:contains("' + username + '")').remove();
 });
-
+let openedTaskNameOfTheEffortModal;
 function openTaskModal(taskName) {
+    openedTaskNameOfTheEffortModal = taskName;
     $('#taskModal').modal('show');
 
     let setDurationButton = document.querySelector('#taskModal .modal-body .btn-success');
@@ -123,12 +124,12 @@ connection.on("getEffort", function (taskEffortList) {
 connection.on("addTaskForJoinedUser", function (taskList) {
     
     let booleanValueIsAdmin = JSON.parse(isAdmin);
-    for (const taskName of taskList) {
-        let tableButtonContent = getTableContentAccordingToUserType(booleanValueIsAdmin, taskName);
+    for (const element of taskList) {
+        let tableButtonContent = getTableContentAccordingToUserType(booleanValueIsAdmin, element.taskName, element.taskSituation);
         let tableRow =
             `<tr>
-            <td>${taskName}</td>
-            <td>Open</td>
+            <td>${element.taskName}</td>
+            ${tableButtonContent.openCloseTaskButton}
             ${tableButtonContent.detailOrButton}
             ${tableButtonContent.deleteButton}
             </tr>`;
@@ -152,7 +153,7 @@ function addedNewTask(taskModel, isAdmin) {
         let tableRow =
             `<tr>
             <td>${taskModel.taskName}</td>
-            <td>Open</td>
+            ${tableButtonContent.openCloseTaskButton}
             ${tableButtonContent.detailOrButton}
             ${tableButtonContent.deleteButton}
             </tr>`;
@@ -173,18 +174,52 @@ function addedNewTask(taskModel, isAdmin) {
     }
 }
 
-function getTableContentAccordingToUserType(isAdmin, taskName) {
-    let model = { detailOrButton: null, deleteButton: null };
+function getTableContentAccordingToUserType(isAdmin, taskName, taskSituationForJoinedNewUser = null) {
+    let model = { detailOrButton: null, deleteButton: null, openCloseTaskButton: null };
 
     if (isAdmin) {
         model.detailOrButton = `<td><button type="button" class="btn btn-primary btn-sm" onclick = "taskDetail('${taskName}')">Detail</button></td>`
         model.deleteButton = `<td><button type="button" class="btn btn-primary btn-sm">Delete</button></td>`
+        model.openCloseTaskButton = `<td><button type="button" id = "openCloseTaskButton'${taskName}'" onclick="openCloseTaskForEffort('${taskName}')" class="btn btn-primary btn-sm">Close</button></td>`
+
+        if (taskSituationForJoinedNewUser != null) {
+            taskSituationForJoinedNewUser = taskSituationForJoinedNewUser == "Open" ? "Close" : "Open";
+            model.openCloseTaskButton = `<td><button type="button" id = "openCloseTaskButton'${taskName}'" onclick="openCloseTaskForEffort('${taskName}')" class="btn btn-primary btn-sm">${taskSituationForJoinedNewUser}</button></td>`
+        }
+
     }
     else {
-        model.detailOrButton = `<td><button type="button" class="btn btn-primary btn-sm" onclick="openTaskModal('${taskName}')">Add Effort</button></td>`
+        var isDisabled = taskSituationForJoinedNewUser == "Open" || taskSituationForJoinedNewUser == null ? '' : 'disabled';
+        model.detailOrButton = `<td><button type="button" id="addEffortTask${taskName}" class="btn btn-primary btn-sm" onclick="openTaskModal('${taskName}')" ${isDisabled}>Add Effort</button></td>`
     }
     return model;
 }
+
+function openCloseTaskForEffort(taskName) {
+    let button = document.getElementById(`openCloseTaskButton'${taskName}'`);
+    let situation;
+    if (button.innerText == "Open") {
+        button.innerText = "Close";
+        situation = "Open";
+    } else {
+        situation = "Close";
+        button.innerText = "Open"
+    }
+    connection.invoke("openOrCloseTask", situation, taskName)
+}
+
+connection.on("changeTaskSituation", function (situation, taskName) {
+    let effortButton = document.getElementById(`addEffortTask${taskName}`);
+    if (situation == "Close") {
+        effortButton.disabled = true;
+        if ($("#taskModal").css("display") == "block" && openedTaskNameOfTheEffortModal == taskName) {
+            $('#taskModal').modal('hide')
+        }
+    } else {
+        effortButton.disabled = false;
+       
+    }
+})
 
 function isExistTaskName(taskName) {
     return false;
