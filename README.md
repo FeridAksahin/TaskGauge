@@ -30,7 +30,7 @@ Note: To optimize performance, the effort estimates provided for tasks opened du
 
 ## Technologies Used
 
-- ASP.NET MVC
+- ASP.NET Core MVC
 - SignalR (For Real-Time Communication)
 - Entity Framework (Code-First Approach)
 - Cookie-based Authentication
