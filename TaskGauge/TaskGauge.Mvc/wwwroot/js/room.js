@@ -14,7 +14,7 @@ connection.on("userList", function (roomUserList) {
 });
 
 let urlParams = new URLSearchParams(window.location.search);
-let roomNameFromUrl = urlParams.get('roomName');
+let roomNameFromUrl = document.getElementById('roomName').value;
 let isAdmin = document.getElementById('isAdmin').value;
 
 connection.start().then(function () {

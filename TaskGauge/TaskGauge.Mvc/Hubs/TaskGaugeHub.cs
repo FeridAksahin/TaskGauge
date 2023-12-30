@@ -21,28 +21,24 @@ namespace TaskGauge.Mvc.Hubs
             roomMember.RoomName = roomName;
             roomMember.Username = username;
             roomMember.UserId = Convert.ToInt32(httpContext.Request.Cookies["UserId"]);
-            roomMember.IsAdmin = bool.TryParse(isAdmin, out var isAdminBool);
+            bool.TryParse(isAdmin, out var isAdminBool);
+            roomMember.IsAdmin = isAdminBool;
             roomMember.ConnectionId = Context.ConnectionId;
             var roomTaskList = GetRoomTaskList(roomUserStatic.allRoomTask, roomName);
             if (!roomUserStatic.roomUser.Exists(x => x.Username == username))
             {
-                roomUserStatic.roomUser.Add(roomMember);
-                var roomUserList = GetTheNameOfTheUsersInTheRoom(roomUserStatic.roomUser, roomName);
-                await Groups.AddToGroupAsync(Context.ConnectionId, roomName);
-                await Clients.OthersInGroup(roomName).SendAsync("userJoined", username);
-                await Clients.Caller.SendAsync("userList", roomUserList);
-                
-
+                roomUserStatic.roomUser.Add(roomMember); 
             }
             else if (roomUserStatic.roomUser.Exists(x => x.Username == username && !x.IsItInTheRoom))
             {
                 roomUserStatic.roomUser.ForEach(user => user.IsItInTheRoom = user.Username == username ? true : user.IsItInTheRoom);
-                roomUserStatic.roomUser.ForEach(user => user.ConnectionId = user.Username == username ? roomMember.ConnectionId : user.ConnectionId);
-                var roomUserList = GetTheNameOfTheUsersInTheRoom(roomUserStatic.roomUser, roomName);
-                await Groups.AddToGroupAsync(Context.ConnectionId, roomName);
-                await Clients.OthersInGroup(roomName).SendAsync("userJoined", username);
-                await Clients.Caller.SendAsync("userList", roomUserList); 
+                roomUserStatic.roomUser.ForEach(user => user.ConnectionId = user.Username == username ? roomMember.ConnectionId : user.ConnectionId); 
             }
+
+            var roomUserList = GetTheNameOfTheUsersInTheRoom(roomUserStatic.roomUser, roomName);
+            await Clients.Caller.SendAsync("userList", roomUserList);
+            await Groups.AddToGroupAsync(Context.ConnectionId, roomName);
+            await Clients.OthersInGroup(roomName).SendAsync("userJoined", username);
             await Clients.Caller.SendAsync("addTaskForJoinedUser", roomTaskList);
             if (Convert.ToBoolean(isAdmin))
             {
