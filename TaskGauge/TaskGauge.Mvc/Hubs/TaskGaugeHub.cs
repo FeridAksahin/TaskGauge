@@ -89,7 +89,10 @@ namespace TaskGauge.Mvc.Hubs
             }
 
             await Clients.Caller.SendAsync("addedTaskByAdmin", taskModel);
-            await Clients.OthersInGroup(roomName).SendAsync("newTask", taskModel);
+            if (taskModel.IsSuccess)
+            {
+                await Clients.OthersInGroup(roomName).SendAsync("newTask", taskModel);
+            }
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
