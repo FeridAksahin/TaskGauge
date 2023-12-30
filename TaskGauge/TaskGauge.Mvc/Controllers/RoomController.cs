@@ -37,6 +37,7 @@ namespace TaskGauge.Mvc.Controllers
                 isAdmin = _roomDal.IsTheLoggedInUserTheRoomAdministrator(roomName);
             }
             ViewBag.IsAdmin = isAdmin;
+            ViewBag.RoomName = roomName;    
             return View(isAdmin);
         }
 
