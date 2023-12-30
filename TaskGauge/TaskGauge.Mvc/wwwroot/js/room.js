@@ -24,7 +24,9 @@ connection.start().then(function () {
 });
 
 connection.on("userLeft", function (username) {
-    $('#participants li:contains("' + username + '")').remove();
+    $('#participants li').filter(function () {
+        return $(this).text().trim() == username;
+    }).remove();
 });
 let openedTaskNameOfTheEffortModal;
 function openTaskModal(taskName) {
