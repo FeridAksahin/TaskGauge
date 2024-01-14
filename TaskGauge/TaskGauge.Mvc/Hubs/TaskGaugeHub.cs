@@ -25,14 +25,14 @@ namespace TaskGauge.Mvc.Hubs
             roomMember.IsAdmin = isAdminBool;
             roomMember.ConnectionId = Context.ConnectionId;
             var roomTaskList = GetRoomTaskList(roomUserStatic.allRoomTask, roomName);
-            if (!roomUserStatic.roomUser.Exists(x => x.Username == username))
+            if (roomUserStatic.roomUser.Exists(x => x.Username == username && !x.IsItInTheRoom && x.RoomName.Equals(roomName)))
             {
-                roomUserStatic.roomUser.Add(roomMember); 
+                roomUserStatic.roomUser.ForEach(user => user.IsItInTheRoom = user.Username == username && user.RoomName.Equals(roomName) ? true : user.IsItInTheRoom);
+                roomUserStatic.roomUser.ForEach(user => user.ConnectionId = user.Username == username && user.RoomName.Equals(roomName) ? roomMember.ConnectionId : user.ConnectionId); 
             }
-            else if (roomUserStatic.roomUser.Exists(x => x.Username == username && !x.IsItInTheRoom))
+            else
             {
-                roomUserStatic.roomUser.ForEach(user => user.IsItInTheRoom = user.Username == username ? true : user.IsItInTheRoom);
-                roomUserStatic.roomUser.ForEach(user => user.ConnectionId = user.Username == username ? roomMember.ConnectionId : user.ConnectionId); 
+                roomUserStatic.roomUser.Add(roomMember);
             }
 
             var roomUserList = GetTheNameOfTheUsersInTheRoom(roomUserStatic.roomUser, roomName);
@@ -95,8 +95,8 @@ namespace TaskGauge.Mvc.Hubs
         {
             var httpContext = Context.GetHttpContext();
             var username = httpContext.Request.Cookies["Username"];
-            var roomName = roomUserStatic.roomUser.FirstOrDefault(x => x.Username == username).RoomName;
-            roomUserStatic.roomUser.ForEach(x => x.IsItInTheRoom = x.Username == username ? false : x.IsItInTheRoom);
+            var roomName = roomUserStatic.roomUser.FirstOrDefault(x => x.Username == username && x.IsItInTheRoom).RoomName;
+            roomUserStatic.roomUser.ForEach(x => x.IsItInTheRoom = x.Username == username && x.RoomName.Equals(roomName) ? false : x.IsItInTheRoom);
             await Clients.OthersInGroup(roomName).SendAsync("userLeft", username);
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomName);
             await base.OnDisconnectedAsync(exception);

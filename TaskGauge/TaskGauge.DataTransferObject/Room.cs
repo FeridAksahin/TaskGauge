@@ -10,5 +10,6 @@ namespace TaskGauge.DataTransferObject
     {
         public string Name { get; set; }
         public bool isActive { get; set; }
+        public string RoomAdmin { get; set; }
     }
 }

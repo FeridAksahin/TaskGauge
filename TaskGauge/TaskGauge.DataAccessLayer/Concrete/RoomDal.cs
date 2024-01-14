@@ -51,7 +51,8 @@ namespace TaskGauge.DataAccessLayer.Concrete
                 roomUser.room.Add(new DataTransferObject.Room
                 {
                     Name = room.Name,
-                    isActive = room.isActive
+                    isActive = room.isActive,
+                    RoomAdmin = room.RoomAdmin.Name
                 });
             }
         }
