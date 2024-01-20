@@ -30,6 +30,13 @@ namespace TaskGauge.Mvc.Hubs
                 roomUserStatic.roomUser.ForEach(user => user.IsItInTheRoom = user.Username == username && user.RoomName.Equals(roomName) ? true : user.IsItInTheRoom);
                 roomUserStatic.roomUser.ForEach(user => user.ConnectionId = user.Username == username && user.RoomName.Equals(roomName) ? roomMember.ConnectionId : user.ConnectionId); 
             }
+            else if(roomUserStatic.roomUser.Exists(x => x.Username == username && x.IsItInTheRoom && x.RoomName.Equals(roomName)))
+            {
+                var message = "You are already in the room.";
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomName);
+                await Clients.Caller.SendAsync("alreadyInTheJoinRoom", message);
+                return;
+            }
             else
             {
                 roomUserStatic.roomUser.Add(roomMember);
@@ -92,14 +99,17 @@ namespace TaskGauge.Mvc.Hubs
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
-        {
+        { 
             var httpContext = Context.GetHttpContext();
-            var username = httpContext.Request.Cookies["Username"];
-            var roomName = roomUserStatic.roomUser.FirstOrDefault(x => x.Username == username && x.IsItInTheRoom).RoomName;
-            roomUserStatic.roomUser.ForEach(x => x.IsItInTheRoom = x.Username == username && x.RoomName.Equals(roomName) ? false : x.IsItInTheRoom);
-            await Clients.OthersInGroup(roomName).SendAsync("userLeft", username);
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomName);
-            await base.OnDisconnectedAsync(exception);
+            var username = httpContext.Request.Cookies["Username"]; 
+            var roomUser = roomUserStatic.roomUser.FirstOrDefault(x => x.Username == username && x.IsItInTheRoom);
+            if (Context.ConnectionId == roomUser.ConnectionId)
+            {
+                roomUserStatic.roomUser.ForEach(x => x.IsItInTheRoom = x.Username == username && x.RoomName.Equals(roomUser.RoomName) ? false : x.IsItInTheRoom);
+                await Clients.OthersInGroup(roomUser.RoomName).SendAsync("userLeft", username);
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomUser.RoomName);
+                await base.OnDisconnectedAsync(exception);
+            }
         }
 
         public async Task TaskEffort(string taskName, string taskEffortDuration)
