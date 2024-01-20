@@ -3,7 +3,7 @@
     .configureLogging(signalR.LogLevel.Information)
     .build();
 
-connection.on("userJoined", function (username) { 
+connection.on("userJoined", function (username) {
     $('#participants').append('<li class="participant">' + username + '</li>');
 });
 
@@ -21,6 +21,16 @@ connection.start().then(function () {
     connection.invoke("joinRoom", roomNameFromUrl, isAdmin);
 }).catch(function (err) {
     return console.error(err.toString());
+});
+
+connection.on("alreadyInTheJoinRoom", function (message) {
+    Swal.fire({
+        text: message,
+        icon: 'error', 
+        allowOutsideClick: false,
+        showCancelButton: false,
+        showCloseButton: false
+    });
 });
 
 connection.on("userLeft", function (username) {
@@ -121,10 +131,10 @@ connection.on("getEffort", function (taskEffortList) {
             }
         }
     }
-}) 
+})
 
 connection.on("addTaskForJoinedUser", function (taskList) {
-    
+
     let booleanValueIsAdmin = JSON.parse(isAdmin);
     for (const element of taskList) {
         let tableButtonContent = getTableContentAccordingToUserType(booleanValueIsAdmin, element.taskName, element.taskSituation);
@@ -219,7 +229,7 @@ connection.on("changeTaskSituation", function (situation, taskName) {
         }
     } else {
         effortButton.disabled = false;
-       
+
     }
 })
 
