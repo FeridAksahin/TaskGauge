@@ -90,6 +90,13 @@
                             <input type="password" class="form-control" id="registerPassword" placeholder="Password" required>
                         </div>
                         <div class="form-group">
+                            <select class="form-control" id="role">
+                                <option>Select role...</option>
+                                <option>Tester</option>
+                                <option>Developer</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <select class="form-control" id="securityQuestion">
                                 @foreach (var question in ViewBag.SecurityQuestions)
                                 {
@@ -151,27 +158,34 @@
             }
         }
 
-        function register() { 
+        function register() {
             var username = document.getElementById("registerUsername").value;
             var password = document.getElementById("registerPassword").value;
             var question = document.getElementById("securityQuestion").value;
             var answer = document.getElementById("securityAnswer").value;
-
-            var data = { Username: username, Password: password, SecurityQuestion: question, SecurityQuestionAnswer: answer };
+            var roleName = document.getElementById("role").value;
+            if (roleName == "Select role...") {
+                Swal.fire({
+                    text: "Select role",
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                })
+                return;
+            }
+            var data = { Username: username, Password: password, SecurityQuestion: question, SecurityQuestionAnswer: answer, RoleName: roleName };
             $.ajax({
                 url: taskGauge.urlList.register_post,
                 data: { registerDto: data },
                 method: 'POST',
-                success: function(data) {
+                success: function (data) {
                     if (data.type == "error") {
                         Swal.fire({
                             text: data.message,
                             icon: 'error',
                             confirmButtonText: 'OK'
                         })
-                    } 
-                    else 
-                    {
+                    }
+                    else {
                         location.href = "/Login/Index?isRegisterUser=true";
                     }
 
