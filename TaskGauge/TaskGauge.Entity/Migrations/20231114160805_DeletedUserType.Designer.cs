@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TaskGauge.Entity.Context;
 
@@ -11,9 +12,11 @@ using TaskGauge.Entity.Context;
 namespace TaskGauge.Entity.Migrations
 {
     [DbContext(typeof(TaskGaugeContext))]
-    partial class TaskGaugeContextModelSnapshot : ModelSnapshot
+    [Migration("20231114160805_DeletedUserType")]
+    partial class DeletedUserType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,9 +74,6 @@ namespace TaskGauge.Entity.Migrations
 
                     b.Property<int>("RoomAdminId")
                         .HasColumnType("int");
-
-                    b.Property<bool>("isActive")
-                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 

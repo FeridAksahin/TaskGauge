@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.13">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -14,7 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TaskGauge.Common\TaskGauge.Common.csproj" />
+    <ProjectReference Include="..\TaskGauge.DataAccessLayer\TaskGauge.DataAccessLayer.csproj" />
+    <ProjectReference Include="..\TaskGauge.DataTransferObject\TaskGauge.DataTransferObject.csproj" />
     <ProjectReference Include="..\TaskGauge.Entity\TaskGauge.Entity.csproj" />
+    <ProjectReference Include="..\TaskGauge.ViewModel\TaskGauge.ViewModel.csproj" />
   </ItemGroup>
 
 </Project>

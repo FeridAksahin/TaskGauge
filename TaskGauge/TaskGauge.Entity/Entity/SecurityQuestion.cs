@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace TaskGauge.Entity.Entity
 {
-    [Table("UserType")]
-    public class UserType
+    [Table("SecurityQuestion")]
+    public class SecurityQuestion
     {
         [Key]
         public int Id { get; set; }
-        public string Name { get; set; }
+        public string Question { get; set; }
     }
 }

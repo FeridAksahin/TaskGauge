@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TaskGauge.Entity.Context;
 
@@ -11,9 +12,11 @@ using TaskGauge.Entity.Context;
 namespace TaskGauge.Entity.Migrations
 {
     [DbContext(typeof(TaskGaugeContext))]
-    partial class TaskGaugeContextModelSnapshot : ModelSnapshot
+    [Migration("20231114112324_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,9 +74,6 @@ namespace TaskGauge.Entity.Migrations
 
                     b.Property<int>("RoomAdminId")
                         .HasColumnType("int");
-
-                    b.Property<bool>("isActive")
-                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -200,9 +200,14 @@ namespace TaskGauge.Entity.Migrations
                     b.Property<int>("SecurityQuestionId")
                         .HasColumnType("int");
 
+                    b.Property<int>("UserTypeId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SecurityQuestionId");
+
+                    b.HasIndex("UserTypeId");
 
                     b.ToTable("User");
                 });
@@ -232,6 +237,23 @@ namespace TaskGauge.Entity.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserEstimationLog");
+                });
+
+            modelBuilder.Entity("TaskGauge.Entity.Entity.UserType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserType");
                 });
 
             modelBuilder.Entity("TaskGauge.Entity.Entity.PatchTotalEstimationTime", b =>
@@ -308,7 +330,15 @@ namespace TaskGauge.Entity.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("TaskGauge.Entity.Entity.UserType", "UserType")
+                        .WithMany()
+                        .HasForeignKey("UserTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("SecurityQuestion");
+
+                    b.Navigation("UserType");
                 });
 
             modelBuilder.Entity("TaskGauge.Entity.Entity.UserEstimationLog", b =>

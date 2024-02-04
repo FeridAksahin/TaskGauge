@@ -1,3 +1,187 @@
-﻿@{
-    Layout = null;
-}
+﻿@using TaskGauge.DataTransferObject
+@model LoginDto
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login/Register/Forgot Password Form</title>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f8f9fa;
+        }
+
+        .card {
+            max-width: 400px;
+            margin: auto;
+            border: 2px solid #343a40;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-link {
+            color: #343a40;
+        }
+
+            .btn-link:hover {
+                text-decoration: underline;
+            }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card" id="loginCard">
+                    <div class="card-header">
+                        <h3>Login</h3>
+                    </div>
+                    <div class="card-body">
+                        @if (ViewBag.RegisterMessage != null)
+                        {
+                            <div class="alert alert-info" role="alert">
+                                @ViewBag.RegisterMessage
+                            </div>
+                        }
+                        @if (TempData["FailedLogin"] != null)
+                        {
+                            <div class="alert alert-info" role="alert">
+                                @TempData["FailedLogin"]
+                            </div>
+                        }
+                        <form id="loginForm" asp-action="Index" asp-controller="Login" method="post">
+                            <div class="form-group">
+                                <input type="text" asp-for="Username" class="form-control" id="loginUsername" placeholder="Username" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="password" asp-for="Password" class="form-control" id="loginPassword" placeholder="Password" required>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-block">Login</button>
+                            <a href="#" class="btn btn-link btn-block" onclick="showForm('registerForm')">Switch to Register</a>
+                            <a href="#" class="btn btn-link btn-block" onclick="showForm('forgotPasswordForm')">Forgot Password?</a>
+                        </form>
+                    </div>
+                </div>
+                <div class="card" id="registerCard" style="display: none;">
+                    <div class="card-header">
+                        <h3>Register</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="registerUsername" placeholder="Username" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" class="form-control" id="registerPassword" placeholder="Password" required>
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control" id="securityQuestion">
+                                @foreach (var question in ViewBag.SecurityQuestions)
+                                {
+                                    <option>@question.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="securityAnswer" placeholder="Security Answer" required>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-block" onclick="register()">Register</button>
+                        <a href="#" class="btn btn-link btn-block" onclick="showForm('loginForm')">Switch to Login</a>
+                    </div>
+                </div>
+                <div class="card" id="forgotPasswordCard" style="display: none;">
+                    <div class="card-header">
+                        <h3>Forgot Password</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="forgotPasswordForm">
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="forgotPasswordUsername" placeholder="Username" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Security Question:</label>
+                                <select class="form-control" id="securityQuestionForForgotPassword">
+                                    @foreach (var question in ViewBag.SecurityQuestions)
+                                    {
+                                        <option>@question.Text</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="forgotPasswordAnswer" placeholder="Security Answer" required>
+                            </div>
+                            <button type="submit" class="btn btn-warning btn-block">Submit</button>
+                            <a href="#" class="btn btn-link btn-block" onclick="showForm('loginForm')">Switch to Login</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showForm(formId) {
+            if (formId === 'loginForm') {
+                document.getElementById("loginCard").style.display = "block";
+                document.getElementById("registerCard").style.display = "none";
+                document.getElementById("forgotPasswordCard").style.display = "none";
+            } else if (formId === 'registerForm') {
+                document.getElementById("loginCard").style.display = "none";
+                document.getElementById("registerCard").style.display = "block";
+                document.getElementById("forgotPasswordCard").style.display = "none";
+            } else if (formId === 'forgotPasswordForm') {
+                document.getElementById("loginCard").style.display = "none";
+                document.getElementById("registerCard").style.display = "none";
+                document.getElementById("forgotPasswordCard").style.display = "block";
+            }
+        }
+
+        function register() { 
+            var username = document.getElementById("registerUsername").value;
+            var password = document.getElementById("registerPassword").value;
+            var question = document.getElementById("securityQuestion").value;
+            var answer = document.getElementById("securityAnswer").value;
+
+            var data = { Username: username, Password: password, SecurityQuestion: question, SecurityQuestionAnswer: answer };
+            $.ajax({
+                url: taskGauge.urlList.register_post,
+                data: { registerDto: data },
+                method: 'POST',
+                success: function(data) {
+                    if (data.type == "error") {
+                        Swal.fire({
+                            text: data.message,
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        })
+                    } 
+                    else 
+                    {
+                        location.href = "/Login/Index?isRegisterUser=true";
+                    }
+
+                }
+            });
+
+
+        }
+    </script>
+
+</body>
+</html>
+

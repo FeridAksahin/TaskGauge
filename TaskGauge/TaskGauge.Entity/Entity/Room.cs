@@ -15,6 +15,7 @@ namespace TaskGauge.Entity.Entity
         public int Id { get; set; }
         public string Name { get; set; }
         public int RoomAdminId { get; set; }
+        public bool isActive { get; set; }
         public DateTime RecordDate { get; set; } = DateTime.Now;
         [ForeignKey("RoomAdminId")]
         public virtual User RoomAdmin { get; set; }
