@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TaskGauge.Entity.Entity
 {
@@ -17,8 +12,11 @@ namespace TaskGauge.Entity.Entity
         public string Password { get; set; }    
         public DateTime RecordTime { get; set; } = DateTime.Now;
         public int SecurityQuestionId { get; set; }
+        public int RoleId { get; set; }
         public string SecurityQuestionAnswer { get; set; }
         [ForeignKey("SecurityQuestionId")]
         public virtual SecurityQuestion SecurityQuestion { get; set; }
+        [ForeignKey("RoleId")]
+        public virtual Role Role { get; set; }
     }
 }
