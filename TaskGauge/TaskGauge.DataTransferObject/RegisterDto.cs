@@ -12,6 +12,7 @@ namespace TaskGauge.DataTransferObject
         public string Password { get; set; }
         public string SecurityQuestion { get; set; }
         public string SecurityQuestionAnswer { get; set; }
+        public string RoleName { get; set; }
 
     }
 }

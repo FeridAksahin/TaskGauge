@@ -35,6 +35,10 @@ namespace TaskGauge.DataAccessLayer.Concrete
                                               where entity.Question == registerDto.SecurityQuestion
                                               select new { entity.Id }).First();
 
+                var roleId = (from entity in _taskGaugeContext.Role
+                                 where entity.Name.Equals(registerDto.RoleName)
+                                 select entity.Id).FirstOrDefault();
+
                 var securityQuestionId = securityQuestionEntity != null ? securityQuestionEntity.Id : default(int);
 
                 _taskGaugeContext.User.Add(new User
@@ -44,6 +48,7 @@ namespace TaskGauge.DataAccessLayer.Concrete
                     RecordTime = DateTime.Now,
                     SecurityQuestionId = securityQuestionId,
                     SecurityQuestionAnswer = registerDto.SecurityQuestionAnswer,
+                    RoleId= roleId,
                 });
                 _taskGaugeContext.SaveChanges();
                 return $"{TextResources.SuccessfullyRegisteredUser} Type: success";
