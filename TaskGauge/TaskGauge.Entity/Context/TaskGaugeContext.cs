@@ -16,5 +16,6 @@ namespace TaskGauge.Entity.Context
         public virtual DbSet<Room> Room { get; set; }
         public virtual DbSet<PatchTotalEstimationTime> PatchTotalEstimationTime { get; set; }
         public virtual DbSet<SecurityQuestion> SecurityQuestion { get; set; }
+        public virtual DbSet<Role> Role { get; set; }
     }
 }
