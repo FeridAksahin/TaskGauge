@@ -43,9 +43,9 @@ namespace TaskGauge.Mvc.Controllers
         public async Task<IActionResult> Index(LoginDto loginDto)
         {
             var result = _userDal.Login(loginDto);
-            if (result.Contains("error"))
+            if (!string.IsNullOrEmpty(result.ErrorMessage))
             {
-                TempData["FailedLogin"] = result.Split("Type")[0];
+                TempData["FailedLogin"] = result.ErrorMessage;
                 return RedirectToAction("Index");
             }
             var claim = new List<Claim>
@@ -59,7 +59,8 @@ namespace TaskGauge.Mvc.Controllers
                 new ClaimsPrincipal(claimIdentity), authenticationProperties);
 
             Response.Cookies.Append("Username", loginDto.Username);
-            Response.Cookies.Append("UserId", result);
+            Response.Cookies.Append("UserId", result.Id);
+            Response.Cookies.Append("UserRole", result.RoleName);
 
             return RedirectToAction("Index", "Home");
         }
