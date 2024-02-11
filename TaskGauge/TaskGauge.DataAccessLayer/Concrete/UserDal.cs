@@ -8,6 +8,7 @@ using TaskGauge.DataAccessLayer.Interface;
 using TaskGauge.DataTransferObject;
 using TaskGauge.Entity.Context;
 using TaskGauge.Entity.Entity;
+using TaskGauge.ViewModel;
 
 namespace TaskGauge.DataAccessLayer.Concrete
 {
@@ -36,8 +37,8 @@ namespace TaskGauge.DataAccessLayer.Concrete
                                               select new { entity.Id }).First();
 
                 var roleId = (from entity in _taskGaugeContext.Role
-                                 where entity.Name.Equals(registerDto.RoleName)
-                                 select entity.Id).FirstOrDefault();
+                              where entity.Name.Equals(registerDto.RoleName)
+                              select entity.Id).FirstOrDefault();
 
                 var securityQuestionId = securityQuestionEntity != null ? securityQuestionEntity.Id : default(int);
 
@@ -48,7 +49,7 @@ namespace TaskGauge.DataAccessLayer.Concrete
                     RecordTime = DateTime.Now,
                     SecurityQuestionId = securityQuestionId,
                     SecurityQuestionAnswer = registerDto.SecurityQuestionAnswer,
-                    RoleId= roleId,
+                    RoleId = roleId,
                 });
                 _taskGaugeContext.SaveChanges();
                 return $"{TextResources.SuccessfullyRegisteredUser} Type: success";
@@ -60,26 +61,43 @@ namespace TaskGauge.DataAccessLayer.Concrete
 
         }
 
-        public string Login(LoginDto loginDto)
+        public UserViewModel Login(LoginDto loginDto)
         {
             try
             {
-                var userId = _taskGaugeContext.User.Where
-                    (x => x.Name.Equals(loginDto.Username)).FirstOrDefault();
-                if (userId == null)
-                {
-                    return $"{TextResources.WrongUsername} Type: error";
-                }
-                var isAcceptLogin = _taskGaugeContext.User.Where
-                    (x=>x.Password.Equals(CryptoPassword.EncryptPassword(loginDto.Password))).Any();
+                var user = (from entity in _taskGaugeContext.User
+                            where entity.Name.EndsWith(loginDto.Username)
+                            select new UserViewModel
+                            {
+                                Id = Convert.ToString(entity.Id),
+                                RoleName = entity.Role.Name,
+                            }).FirstOrDefault();
 
-                return isAcceptLogin ? $"{userId.Id}" : $"{TextResources.WrongPassword} Type: error";
+                if (user == null)
+                { 
+                    return new UserViewModel
+                    {
+                        ErrorMessage = TextResources.WrongUsername
+                    };
+                }
+
+                var isAcceptLogin = _taskGaugeContext.User.Where
+                    (x => x.Password.Equals(CryptoPassword.EncryptPassword(loginDto.Password))).Any();
+
+                if (!isAcceptLogin)
+                {
+                    user.ErrorMessage = TextResources.WrongPassword;
+                }
+                return user;
             }
 
             catch (Exception exception)
             {
-                return $"{exception.Message} Type: error";
-            }
+                return new UserViewModel
+                {
+                    ErrorMessage = exception.Message
+                };
+        }
         }
     }
 }
