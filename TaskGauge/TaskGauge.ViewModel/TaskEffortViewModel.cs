@@ -12,5 +12,6 @@ namespace TaskGauge.ViewModel
         public double Effort { get; set; }
         public string TaskName { get; set; }
         public string RoomName { get; set; }
+        public string UserRole { get; set; }
     }
 }
