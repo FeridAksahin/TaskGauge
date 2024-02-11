@@ -21,6 +21,7 @@ namespace TaskGauge.Mvc.Hubs
             roomMember.RoomName = roomName;
             roomMember.Username = username;
             roomMember.UserId = Convert.ToInt32(httpContext.Request.Cookies["UserId"]);
+            roomMember.UserRole = httpContext.Request.Cookies["UserRole"] ?? string.Empty;
             bool.TryParse(isAdmin, out var isAdminBool);
             roomMember.IsAdmin = isAdminBool;
             roomMember.ConnectionId = Context.ConnectionId;
@@ -133,7 +134,8 @@ namespace TaskGauge.Mvc.Hubs
                     Effort = taskEffort,
                     TaskName = taskName,
                     Username = user.Username,
-                    RoomName = user.RoomName
+                    RoomName = user.RoomName,
+                    UserRole = user.UserRole
                 });
             }
             var adminConnectionId = roomUserStatic.roomUser.Where(x => x.RoomName.Equals(user.RoomName) && x.IsAdmin).FirstOrDefault().ConnectionId;
