@@ -26,6 +26,11 @@ namespace TaskGauge.Common
             return Convert.ToInt32(httpContext.Request.Cookies["UserId"]); 
         }
 
+        public string GetUserRole()
+        {
+            return _httpContextAccessor.HttpContext.Request.Cookies["UserRole"];
+        }
+
         public string GetSessionValue(string key)
         {
             var httpContext = _httpContextAccessor.HttpContext;
