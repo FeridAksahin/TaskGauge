@@ -72,6 +72,7 @@ function taskDetail(taskName) {
                     `<tr>
                  <td>${element.username}</td> 
                  <td id = "${element.username}">${element.effort}</td>  
+                 <td id = "${element.username}-Role">${element.userRole}</td>  
                 </tr>`;
 
                 $('#taskDetailTable').append(tableRow);
@@ -120,11 +121,13 @@ connection.on("getEffort", function (taskEffortList) {
         for (let item = 0; item < taskEfforts.length; item++) {
             if (document.getElementById(`${taskEfforts[item].username}`) != null && openedTaskName == taskEfforts[item].taskName) {
                 document.getElementById(`${taskEfforts[item].username}`).innerHTML = taskEfforts[item].effort
+                document.getElementById(`${taskEfforts[item].username}-Role`).innerHTML = taskEfforts[item].userRole
             } else if (openedTaskName == taskEfforts[item].taskName) {
                 let tableRow =
                     `<tr>
                  <td>${taskEfforts[item].username}</td> 
                  <td id = "${taskEfforts[item].username}">${taskEfforts[item].effort}</td>  
+                 <td id = "${taskEfforts[item].username}-Role">${taskEfforts[item].userRole}</td>  
                 </tr>`;
 
                 $('#taskDetailTable').append(tableRow);
