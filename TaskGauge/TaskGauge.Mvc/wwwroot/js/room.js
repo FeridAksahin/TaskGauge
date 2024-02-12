@@ -26,7 +26,7 @@ connection.start().then(function () {
 connection.on("alreadyInTheJoinRoom", function (message) {
     Swal.fire({
         text: message,
-        icon: 'error', 
+        icon: 'error',
         allowOutsideClick: false,
         showCancelButton: false,
         showCloseButton: false
@@ -55,6 +55,43 @@ function openTaskModal(taskName) {
 }
 let taskEfforts;
 let openedTaskName;
+let taskTotalTimeInformationList;
+
+function fillTaskEffortDurationForRoomAdmin() {
+    document.getElementById('devEffort').textContent = 0;
+    document.getElementById('testerEffort').textContent = 0;
+    document.getElementById('totalEffort').textContent = 0;
+
+  
+
+    for (let item = 0; item < taskTotalTimeInformationList.length; item++) {
+        if (taskTotalTimeInformationList[item].taskName == openedTaskName) {
+            document.getElementById('devEffort').textContent = taskTotalTimeInformationList[item].devTotalEffort;
+            document.getElementById('testerEffort').textContent = taskTotalTimeInformationList[item].testerTotalEffort;
+            document.getElementById('totalEffort').textContent = taskTotalTimeInformationList[item].totalEffort;
+        }
+    }
+
+   
+}
+
+function fillAllEffortDurationForRoomAdmin()
+{
+    let testTeamEffort = 0;
+    let devTeamEffort = 0;
+    let totalEffort = 0;
+
+    for (const element of taskTotalTimeInformationList) {
+        devTeamEffort += element.devTotalEffort;
+        testTeamEffort += element.testerTotalEffort;
+        totalEffort += element.totalEffort;
+    }
+
+    document.getElementById('allDevEffort').textContent = devTeamEffort;
+    document.getElementById('allTesterEffort').textContent = testTeamEffort;
+    document.getElementById('allTotalEffort').textContent = totalEffort;
+}
+
 function taskDetail(taskName) {
     openedTaskName = taskName;
     let tds = document.querySelectorAll("#taskDetailModal td");
@@ -66,6 +103,7 @@ function taskDetail(taskName) {
 
     $('#taskDetailModal').modal('show');
     if (taskEfforts != null) {
+        fillTaskEffortDurationForRoomAdmin();
         for (const element of taskEfforts) {
             if (taskName == element.taskName) {
                 let tableRow =
@@ -113,16 +151,23 @@ connection.on("newTask", function (taskModel) {
     addedNewTask(taskModel, false);
 })
 
-connection.on("getEffort", function (taskEffortList) {
+connection.on("getEffort", function (taskEffortList, totalTaskEffortInformation) {
 
     taskEfforts = taskEffortList;
-
+    taskTotalTimeInformationList = totalTaskEffortInformation;
+    fillAllEffortDurationForRoomAdmin();
     if ($("#taskDetailModal").css("display") === "block") {
+
+        fillTaskEffortDurationForRoomAdmin();
+
         for (let item = 0; item < taskEfforts.length; item++) {
-            if (document.getElementById(`${taskEfforts[item].username}`) != null && openedTaskName == taskEfforts[item].taskName) {
+            if (document.getElementById(`${taskEfforts[item].username}`) != null && openedTaskName == taskEfforts[item].taskName)
+            {
                 document.getElementById(`${taskEfforts[item].username}`).innerHTML = taskEfforts[item].effort
                 document.getElementById(`${taskEfforts[item].username}-Role`).innerHTML = taskEfforts[item].userRole
-            } else if (openedTaskName == taskEfforts[item].taskName) {
+            }
+            else if (openedTaskName == taskEfforts[item].taskName)
+            {
                 let tableRow =
                     `<tr>
                  <td>${taskEfforts[item].username}</td> 
