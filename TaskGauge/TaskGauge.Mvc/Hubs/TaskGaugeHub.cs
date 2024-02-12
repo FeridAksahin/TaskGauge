@@ -12,6 +12,7 @@ namespace TaskGauge.Mvc.Hubs
     {
         RoomStatic roomUserStatic = RoomStatic.Instance;
         private static Dictionary<string, string> _openOrClosedTask = new Dictionary<string, string>();
+        private static List<TotalTaskEffortInformationViewModel> totalTaskEffortInformation = new List<TotalTaskEffortInformationViewModel>();
         public async Task JoinRoom(string roomName, string isAdmin)
         {
             var httpContext = Context.GetHttpContext();
@@ -29,7 +30,7 @@ namespace TaskGauge.Mvc.Hubs
             if (roomUserStatic.roomUser.Exists(x => x.Username == username && !x.IsItInTheRoom && x.RoomName.Equals(roomName)))
             {
                 roomUserStatic.roomUser.ForEach(user => user.IsItInTheRoom = user.Username == username && user.RoomName.Equals(roomName) ? true : user.IsItInTheRoom);
-                roomUserStatic.roomUser.ForEach(user => user.ConnectionId = user.Username == username && user.RoomName.Equals(roomName) ? roomMember.ConnectionId : user.ConnectionId); 
+                roomUserStatic.roomUser.ForEach(user => user.ConnectionId = user.Username == username && user.RoomName.Equals(roomName) ? roomMember.ConnectionId : user.ConnectionId);
             }
             else if(roomUserStatic.roomUser.Exists(x => x.Username == username && x.IsItInTheRoom && x.RoomName.Equals(roomName)))
             {
@@ -53,7 +54,7 @@ namespace TaskGauge.Mvc.Hubs
                 var adminConnectionId = roomUserStatic.roomUser.Where(x => x.RoomName.Equals(roomName) && x.IsAdmin).FirstOrDefault().ConnectionId;
                 await Clients.Client(adminConnectionId).SendAsync("allTaskEffortForJoinedAdminUser", roomUserStatic.taskEffortList);
             }
-        
+
         }
 
         public async Task AddTask(string taskName)
@@ -100,9 +101,9 @@ namespace TaskGauge.Mvc.Hubs
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
-        { 
+        {
             var httpContext = Context.GetHttpContext();
-            var username = httpContext.Request.Cookies["Username"]; 
+            var username = httpContext.Request.Cookies["Username"];
             var roomUser = roomUserStatic.roomUser.FirstOrDefault(x => x.Username == username && x.IsItInTheRoom);
             if (Context.ConnectionId == roomUser.ConnectionId)
             {
@@ -138,9 +139,39 @@ namespace TaskGauge.Mvc.Hubs
                     UserRole = user.UserRole
                 });
             }
+            if(totalTaskEffortInformation.Count > 0)
+            {
+                totalTaskEffortInformation.RemoveAll(x => x.RoomName.Equals(user.RoomName) && x.TaskName.Equals(taskName));
+            }
+            var totalEffort = GetTotalEffortInformationForAdmin(user.RoomName, taskName);
+            totalTaskEffortInformation.Add(totalEffort);
             var adminConnectionId = roomUserStatic.roomUser.Where(x => x.RoomName.Equals(user.RoomName) && x.IsAdmin).FirstOrDefault().ConnectionId;
-            await Clients.Client(adminConnectionId).SendAsync("getEffort", roomUserStatic.taskEffortList);
-       
+            await Clients.Client(adminConnectionId).SendAsync("getEffort", roomUserStatic.taskEffortList, totalTaskEffortInformation);
+
+        }
+
+        public TotalTaskEffortInformationViewModel GetTotalEffortInformationForAdmin(string roomName, string taskName)
+        {
+            TotalTaskEffortInformationViewModel totalEffortInformation = new TotalTaskEffortInformationViewModel();
+            foreach (var item in roomUserStatic.taskEffortList)
+            {
+                if(item.RoomName.Equals(roomName, StringComparison.OrdinalIgnoreCase) && item.TaskName.Equals(taskName, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (item.UserRole.Equals("Tester", StringComparison.OrdinalIgnoreCase))
+                    {
+                        totalEffortInformation.TesterTotalEffort += item.Effort;
+                    }
+                    else
+                    {
+                        totalEffortInformation.DevTotalEffort += item.Effort;
+                    }
+
+                    totalEffortInformation.TotalEffort += item.Effort;
+                }
+            }
+            totalEffortInformation.TaskName = taskName;
+            totalEffortInformation.RoomName = roomName;
+            return totalEffortInformation;
         }
 
         public async Task OpenOrCloseTask(string taskSituation, string taskName)
@@ -151,7 +182,7 @@ namespace TaskGauge.Mvc.Hubs
             }
             else
             {
-                _openOrClosedTask[taskName] = taskSituation;    
+                _openOrClosedTask[taskName] = taskSituation;
             }
             var roomName = roomUserStatic.roomUser.FirstOrDefault(x => x.ConnectionId.Equals(Context.ConnectionId)).RoomName;
             await Clients.OthersInGroup(roomName).SendAsync("changeTaskSituation", taskSituation, taskName);
