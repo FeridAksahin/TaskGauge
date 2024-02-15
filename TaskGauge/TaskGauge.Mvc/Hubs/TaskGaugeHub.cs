@@ -52,7 +52,7 @@ namespace TaskGauge.Mvc.Hubs
             if (Convert.ToBoolean(isAdmin))
             {
                 var adminConnectionId = roomUserStatic.roomUser.Where(x => x.RoomName.Equals(roomName) && x.IsAdmin).FirstOrDefault().ConnectionId;
-                await Clients.Client(adminConnectionId).SendAsync("allTaskEffortForJoinedAdminUser", roomUserStatic.taskEffortList);
+                await Clients.Client(adminConnectionId).SendAsync("getEffort", roomUserStatic.taskEffortList, totalTaskEffortInformation);
             }
 
         }
