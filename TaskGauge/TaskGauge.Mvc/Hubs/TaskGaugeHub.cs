@@ -3,6 +3,7 @@ using System;
 using System.Globalization;
 using System.Threading.Tasks;
 using TaskGauge.Common;
+using TaskGauge.DataAccessLayer.Interface;
 using TaskGauge.DataTransferObject;
 using TaskGauge.ViewModel;
 
@@ -13,6 +14,13 @@ namespace TaskGauge.Mvc.Hubs
         RoomStatic roomUserStatic = RoomStatic.Instance;
         private static Dictionary<string, string> _openOrClosedTask = new Dictionary<string, string>();
         private static List<TotalTaskEffortInformationViewModel> totalTaskEffortInformation = new List<TotalTaskEffortInformationViewModel>();
+        private IRoomDal _roomDal;
+
+        public TaskGaugeHub(IRoomDal roomDal)
+        {
+            _roomDal = roomDal;
+        }
+
         public async Task JoinRoom(string roomName, string isAdmin)
         {
             var httpContext = Context.GetHttpContext();
@@ -186,6 +194,11 @@ namespace TaskGauge.Mvc.Hubs
             }
             var roomName = roomUserStatic.roomUser.FirstOrDefault(x => x.ConnectionId.Equals(Context.ConnectionId)).RoomName;
             await Clients.OthersInGroup(roomName).SendAsync("changeTaskSituation", taskSituation, taskName);
+        }
+
+        public async Task SaveDatabase(string taskName)
+        {
+            _roomDal.SaveToDatabase(taskName);
         }
 
         private List<string> GetTheNameOfTheUsersInTheRoom(List<RoomUserDto> userList, string roomName)
