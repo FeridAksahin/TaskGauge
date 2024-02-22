@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TaskGauge.Common;
-using TaskGauge.DataAccessLayer.Interface; 
+using TaskGauge.DataAccessLayer.Interface;
 using TaskGauge.Entity.Context;
 using TaskGauge.Entity.Entity;
 
@@ -12,7 +12,7 @@ namespace TaskGauge.DataAccessLayer.Concrete
 {
     public class RoomDal : IRoomDal
     {
-        RoomStatic roomUser = RoomStatic.Instance;
+        RoomStatic roomStatic = RoomStatic.Instance;
         private TaskGaugeContext _taskGaugeContext;
         private UserInformation _userInformation;
         public RoomDal(TaskGaugeContext taskGaugeContext, UserInformation userInformation)
@@ -36,9 +36,9 @@ namespace TaskGauge.DataAccessLayer.Concrete
         public bool IsTheLoggedInUserTheRoomAdministrator(string roomName)
         {
             return (from room in _taskGaugeContext.Room
-                   where room.Name.Equals(roomName) && 
-                   room.RoomAdminId.Equals(_userInformation.GetUserIdFromCookie())
-                   select room).Any();
+                    where room.Name.Equals(roomName) &&
+                    room.RoomAdminId.Equals(_userInformation.GetUserIdFromCookie())
+                    select room).Any();
         }
 
         public void GetAllRoomIntoStaticList()
@@ -46,9 +46,9 @@ namespace TaskGauge.DataAccessLayer.Concrete
             var rooms = from room in _taskGaugeContext.Room
                         where room.isActive
                         select room;
-            foreach(var room in rooms)
+            foreach (var room in rooms)
             {
-                roomUser.room.Add(new DataTransferObject.Room
+                this.roomStatic.room.Add(new DataTransferObject.Room
                 {
                     Name = room.Name,
                     isActive = room.isActive,
@@ -65,17 +65,46 @@ namespace TaskGauge.DataAccessLayer.Concrete
         public void GetAllTaskIntoStaticList()
         {
             var tasks = from task in _taskGaugeContext.Task
-                        select task;
+                        select new
+                        {
+                            Task = task,
+                            RoomName = task.Room.Name
+                        };
             foreach (var task in tasks)
             {
-                roomUser.allRoomTask.Add(new DataTransferObject.TaskDto
+                roomStatic.allRoomTask.Add(new DataTransferObject.TaskDto
                 {
-                    RecordBy = task.RecordBy,
-                    RecordDate = task.RecordDate,
-                    RoomName = task.Room.Name,
-                    TaskName = task.Name
+                    RecordBy = task.Task.RecordBy,
+                    RecordDate = task.Task.RecordDate,
+                    RoomName = task.RoomName,
+                    TaskName = task.Task.Name
                 });
             }
+
         }
+
+        public void SaveToDatabase(string roomName)
+        {
+            SaveTaskToDatabase(roomName);
+        }
+
+        public void SaveTaskToDatabase(string roomName)
+        {
+            var roomId = _taskGaugeContext.Room.ToList().Where(x => x.Name.Equals(roomName)).FirstOrDefault().Id;
+            foreach (var task in roomStatic.allRoomTask)
+            {
+                if (task.RoomName.Equals(roomName) && !IsTaskExist(roomId, task.TaskName))
+                {
+                    _taskGaugeContext.Task.Add(new Entity.Entity.Task { RoomId = roomId, Name = task.TaskName, RecordBy = _userInformation.GetUserIdFromCookie() });
+                    _taskGaugeContext.SaveChanges();
+                }
+            }
+        }
+
+        private bool IsTaskExist(int roomId, string taskName)
+        {
+            return _taskGaugeContext.Task.Any(x => x.RoomId.Equals(roomId) && x.Name.Equals(taskName));
+        }
+
     }
 }

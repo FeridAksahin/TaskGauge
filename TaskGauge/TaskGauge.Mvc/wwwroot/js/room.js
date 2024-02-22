@@ -75,6 +75,11 @@ function fillTaskEffortDurationForRoomAdmin() {
    
 }
 
+function saveRoomToDatabase()
+{
+    connection.invoke("saveDatabase", roomNameFromUrl);
+}
+
 function fillAllEffortDurationForRoomAdmin()
 {
     let testTeamEffort = 0;
