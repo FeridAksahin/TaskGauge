@@ -14,5 +14,6 @@ namespace TaskGauge.DataAccessLayer.Interface
         public void GetAllRoomIntoStaticList();
         public void GetAllTaskIntoStaticList();
         public bool IsExistRoomName(string roomName);
+        public void SaveToDatabase(string roomName);
     }
 }
