@@ -86,6 +86,7 @@ namespace TaskGauge.DataAccessLayer.Concrete
         public void SaveToDatabase(string roomName)
         {
             SaveTaskToDatabase(roomName);
+            SaveTaskEffortInformationToDatabase(roomName);
         }
 
         public void SaveTaskToDatabase(string roomName)
@@ -99,6 +100,46 @@ namespace TaskGauge.DataAccessLayer.Concrete
                     _taskGaugeContext.SaveChanges();
                 }
             }
+        }
+
+        private void SaveTaskEffortInformationToDatabase(string roomName)
+        {
+            var roomId = _taskGaugeContext.Room.Where(x => x.Name.Equals(roomName)).FirstOrDefault().Id;
+            foreach (var item in roomStatic.totalTaskEffortInformation)
+            {
+                var taskId = (from entity in _taskGaugeContext.Task
+                              where entity.Name.Equals(item.TaskName)
+                              select entity).FirstOrDefault().Id;
+
+                var existTask = GetExistTaskEffortInTheDatabase(taskId, roomId);
+
+                if (item.RoomName.Equals(roomName) && existTask != null)
+                {
+                    existTask.TestEstimationTime = item.TesterTotalEffort.ToString();
+                    existTask.DevelopmentEstimationTime = item.DevTotalEffort.ToString();
+                    existTask.TotalEffort = item.TotalEffort.ToString();
+                    _taskGaugeContext.SaveChanges();
+                }
+                else if (item.RoomName.Equals(roomName))
+                {
+                    _taskGaugeContext.RoomTaskInformation.Add(new RoomTaskInformation
+                    { 
+                        TestEstimationTime = item.TesterTotalEffort.ToString(),
+                        DevelopmentEstimationTime = item.DevTotalEffort.ToString(),
+                        RoomId = roomId,
+                        TotalEffort = item.TotalEffort.ToString(),
+                        TaskId = taskId,
+
+                    });
+
+                    _taskGaugeContext.SaveChanges();
+                }
+            }
+        }
+
+        private RoomTaskInformation GetExistTaskEffortInTheDatabase(int taskId, int roomId)
+        {
+            return _taskGaugeContext.RoomTaskInformation.FirstOrDefault(x => x.RoomId.Equals(roomId) && x.TaskId.Equals(taskId));
         }
 
         private bool IsTaskExist(int roomId, string taskName)
