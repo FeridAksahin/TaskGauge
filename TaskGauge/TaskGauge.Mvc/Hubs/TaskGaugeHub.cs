@@ -69,7 +69,7 @@ namespace TaskGauge.Mvc.Hubs
             var user = roomUserStatic.roomUser.Where(x => x.ConnectionId.Equals(Context.ConnectionId)).FirstOrDefault();
             var roomName = user.RoomName;
 
-            var isExistTaskName = roomUserStatic.allRoomTask.Exists(x => x.TaskName.Equals(taskName));
+            var isExistTaskName = roomUserStatic.allRoomTask.Exists(x => x.TaskName.Equals(taskName) && x.RoomName.Equals(roomName));
 
             TaskViewModel taskModel = new TaskViewModel()
             {

@@ -85,13 +85,14 @@ namespace TaskGauge.DataAccessLayer.Concrete
 
         public void SaveToDatabase(string roomName)
         {
-            SaveTaskToDatabase(roomName);
-            SaveTaskEffortInformationToDatabase(roomName);
+            var roomId = _taskGaugeContext.Room.Where(x => x.Name.Equals(roomName)).FirstOrDefault().Id;
+            SaveTaskToDatabase(roomName, roomId);
+            SaveTaskTotalEffortInformationToDatabase(roomName, roomId);
+            SaveUserEffortToDatabase(roomName, roomId);
         }
 
-        public void SaveTaskToDatabase(string roomName)
+        public void SaveTaskToDatabase(string roomName, int roomId)
         {
-            var roomId = _taskGaugeContext.Room.ToList().Where(x => x.Name.Equals(roomName)).FirstOrDefault().Id;
             foreach (var task in roomStatic.allRoomTask)
             {
                 if (task.RoomName.Equals(roomName) && !IsTaskExist(roomId, task.TaskName))
@@ -102,22 +103,55 @@ namespace TaskGauge.DataAccessLayer.Concrete
             }
         }
 
-        private void SaveTaskEffortInformationToDatabase(string roomName)
+        private void SaveUserEffortToDatabase(string roomName, int roomId)
         {
-            var roomId = _taskGaugeContext.Room.Where(x => x.Name.Equals(roomName)).FirstOrDefault().Id;
+            foreach (var item in roomStatic.taskEffortList)
+            {
+                var userId = GetUserId(item.Username);
+                var taskId = (from entity in _taskGaugeContext.Task
+                              where entity.Name.Equals(item.TaskName)
+                              select entity).FirstOrDefault().Id;
+
+                var getUserEffort = GetExistUserTaskEffortInformation(taskId, userId);
+
+                if(getUserEffort != null)
+                {
+                    getUserEffort.EstimationTime = item.Effort.ToString();
+                    _taskGaugeContext.SaveChanges();
+                }
+                else
+                {
+                    _taskGaugeContext.UserEstimationLog.Add(new UserEstimationLog
+                    {
+                        EstimationTime = item.Effort.ToString(),
+                        TaskId = taskId,
+                        UserId = userId
+                    });
+                    _taskGaugeContext.SaveChanges();
+                }
+            }
+        }
+
+        private int GetUserId(string username)
+        {
+            return _taskGaugeContext.User.FirstOrDefault(x => x.Name.Equals(username)).Id;
+        }
+
+        private void SaveTaskTotalEffortInformationToDatabase(string roomName, int roomId)
+        {
             foreach (var item in roomStatic.totalTaskEffortInformation)
             {
                 var taskId = (from entity in _taskGaugeContext.Task
                               where entity.Name.Equals(item.TaskName)
                               select entity).FirstOrDefault().Id;
 
-                var existTask = GetExistTaskEffortInTheDatabase(taskId, roomId);
+                var getExistTotalTaskEffort = GetExistTotalTaskEffortInTheDatabase(taskId, roomId);
 
-                if (item.RoomName.Equals(roomName) && existTask != null)
+                if (item.RoomName.Equals(roomName) && getExistTotalTaskEffort != null)
                 {
-                    existTask.TestEstimationTime = item.TesterTotalEffort.ToString();
-                    existTask.DevelopmentEstimationTime = item.DevTotalEffort.ToString();
-                    existTask.TotalEffort = item.TotalEffort.ToString();
+                    getExistTotalTaskEffort.TestEstimationTime = item.TesterTotalEffort.ToString();
+                    getExistTotalTaskEffort.DevelopmentEstimationTime = item.DevTotalEffort.ToString();
+                    getExistTotalTaskEffort.TotalEffort = item.TotalEffort.ToString();
                     _taskGaugeContext.SaveChanges();
                 }
                 else if (item.RoomName.Equals(roomName))
@@ -137,9 +171,14 @@ namespace TaskGauge.DataAccessLayer.Concrete
             }
         }
 
-        private RoomTaskInformation GetExistTaskEffortInTheDatabase(int taskId, int roomId)
+        private RoomTaskInformation GetExistTotalTaskEffortInTheDatabase(int taskId, int roomId)
         {
             return _taskGaugeContext.RoomTaskInformation.FirstOrDefault(x => x.RoomId.Equals(roomId) && x.TaskId.Equals(taskId));
+        }
+
+        private UserEstimationLog GetExistUserTaskEffortInformation(int taskId, int userId)
+        {
+            return _taskGaugeContext.UserEstimationLog.FirstOrDefault(x=>x.UserId.Equals(userId) && x.TaskId.Equals(taskId));
         }
 
         private bool IsTaskExist(int roomId, string taskName)
