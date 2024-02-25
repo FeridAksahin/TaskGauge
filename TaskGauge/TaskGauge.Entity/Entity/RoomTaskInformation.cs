@@ -17,6 +17,7 @@ namespace TaskGauge.Entity.Entity
         public int TaskId { get; set; }
         public string DevelopmentEstimationTime { get; set; }
         public string TestEstimationTime { get; set; }
+        public string TotalEffort { get; set; }
         public int TestBufferHour { get; set; }
         public int DevelopmentBufferHour { get; set; }
         [ForeignKey("TaskId")]
