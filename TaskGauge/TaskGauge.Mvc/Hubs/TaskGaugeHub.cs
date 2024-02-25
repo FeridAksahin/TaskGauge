@@ -39,7 +39,7 @@ namespace TaskGauge.Mvc.Hubs
                 roomUserStatic.roomUser.ForEach(user => user.IsItInTheRoom = user.Username == username && user.RoomName.Equals(roomName) ? true : user.IsItInTheRoom);
                 roomUserStatic.roomUser.ForEach(user => user.ConnectionId = user.Username == username && user.RoomName.Equals(roomName) ? roomMember.ConnectionId : user.ConnectionId);
             }
-            else if(roomUserStatic.roomUser.Exists(x => x.Username == username && x.IsItInTheRoom && x.RoomName.Equals(roomName)))
+            else if (roomUserStatic.roomUser.Exists(x => x.Username == username && x.IsItInTheRoom && x.RoomName.Equals(roomName)))
             {
                 var message = "You are already in the room.";
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomName);
@@ -146,7 +146,7 @@ namespace TaskGauge.Mvc.Hubs
                     UserRole = user.UserRole
                 });
             }
-            if(roomUserStatic.totalTaskEffortInformation.Count > 0)
+            if (roomUserStatic.totalTaskEffortInformation.Count > 0)
             {
                 roomUserStatic.totalTaskEffortInformation.RemoveAll(x => x.RoomName.Equals(user.RoomName) && x.TaskName.Equals(taskName));
             }
@@ -162,7 +162,7 @@ namespace TaskGauge.Mvc.Hubs
             TotalTaskEffortInformationViewModel totalEffortInformation = new TotalTaskEffortInformationViewModel();
             foreach (var item in roomUserStatic.taskEffortList)
             {
-                if(item.RoomName.Equals(roomName, StringComparison.OrdinalIgnoreCase) && item.TaskName.Equals(taskName, StringComparison.OrdinalIgnoreCase))
+                if (item.RoomName.Equals(roomName, StringComparison.OrdinalIgnoreCase) && item.TaskName.Equals(taskName, StringComparison.OrdinalIgnoreCase))
                 {
                     if (item.UserRole.Equals("Tester", StringComparison.OrdinalIgnoreCase))
                     {
@@ -197,7 +197,8 @@ namespace TaskGauge.Mvc.Hubs
 
         public async Task SaveDatabase(string taskName)
         {
-            _roomDal.SaveToDatabase(taskName);
+            var errorMessageFromDatabase = _roomDal.SaveToDatabase(taskName);
+            await Clients.Caller.SendAsync("saveToDatabaseNotification", errorMessageFromDatabase);
         }
 
         private List<string> GetTheNameOfTheUsersInTheRoom(List<RoomUserDto> userList, string roomName)

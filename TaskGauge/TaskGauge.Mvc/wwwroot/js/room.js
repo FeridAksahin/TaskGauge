@@ -156,6 +156,24 @@ connection.on("newTask", function (taskModel) {
     addedNewTask(taskModel, false);
 })
 
+connection.on("saveToDatabaseNotification", function (errorMessageFromDatabase) {
+    if (errorMessageFromDatabase != "") {
+        Swal.fire({
+            text: errorMessageFromDatabase,
+            icon: 'error',
+            confirmButtonText: 'OK'
+        })
+    }
+    else {
+        Swal.fire({
+            text: 'Added',
+            icon: 'success',
+            confirmButtonText: "OK"
+        })
+    }
+
+})
+
 connection.on("getEffort", function (taskEffortList, totalTaskEffortInformation) {
 
     taskEfforts = taskEffortList;
