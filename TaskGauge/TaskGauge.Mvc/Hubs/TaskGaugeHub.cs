@@ -13,7 +13,6 @@ namespace TaskGauge.Mvc.Hubs
     {
         RoomStatic roomUserStatic = RoomStatic.Instance;
         private static Dictionary<string, string> _openOrClosedTask = new Dictionary<string, string>();
-        private static List<TotalTaskEffortInformationViewModel> totalTaskEffortInformation = new List<TotalTaskEffortInformationViewModel>();
         private IRoomDal _roomDal;
 
         public TaskGaugeHub(IRoomDal roomDal)
@@ -60,7 +59,7 @@ namespace TaskGauge.Mvc.Hubs
             if (Convert.ToBoolean(isAdmin))
             {
                 var adminConnectionId = roomUserStatic.roomUser.Where(x => x.RoomName.Equals(roomName) && x.IsAdmin).FirstOrDefault().ConnectionId;
-                await Clients.Client(adminConnectionId).SendAsync("getEffort", roomUserStatic.taskEffortList, totalTaskEffortInformation);
+                await Clients.Client(adminConnectionId).SendAsync("getEffort", roomUserStatic.taskEffortList, roomUserStatic.totalTaskEffortInformation);
             }
 
         }
@@ -147,14 +146,14 @@ namespace TaskGauge.Mvc.Hubs
                     UserRole = user.UserRole
                 });
             }
-            if(totalTaskEffortInformation.Count > 0)
+            if(roomUserStatic.totalTaskEffortInformation.Count > 0)
             {
-                totalTaskEffortInformation.RemoveAll(x => x.RoomName.Equals(user.RoomName) && x.TaskName.Equals(taskName));
+                roomUserStatic.totalTaskEffortInformation.RemoveAll(x => x.RoomName.Equals(user.RoomName) && x.TaskName.Equals(taskName));
             }
             var totalEffort = GetTotalEffortInformationForAdmin(user.RoomName, taskName);
-            totalTaskEffortInformation.Add(totalEffort);
+            roomUserStatic.totalTaskEffortInformation.Add(totalEffort);
             var adminConnectionId = roomUserStatic.roomUser.Where(x => x.RoomName.Equals(user.RoomName) && x.IsAdmin).FirstOrDefault().ConnectionId;
-            await Clients.Client(adminConnectionId).SendAsync("getEffort", roomUserStatic.taskEffortList, totalTaskEffortInformation);
+            await Clients.Client(adminConnectionId).SendAsync("getEffort", roomUserStatic.taskEffortList, roomUserStatic.totalTaskEffortInformation);
 
         }
 
