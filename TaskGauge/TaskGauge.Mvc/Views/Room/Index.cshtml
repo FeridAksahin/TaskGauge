@@ -23,6 +23,19 @@
             height: 100%;
         }
 
+        .task-table {
+            width: 100%;
+            table-layout: fixed;
+        }
+
+            .task-table th {
+                white-space: nowrap;
+            }
+
+            .task-table td {
+                word-wrap: break-word;
+            }
+
         #participant-list,
         #task-section {
             border: 1px solid #343a40;
@@ -31,6 +44,10 @@
             padding: 20px;
             background-color: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stick-overflow {
+            overflow-y: auto;
         }
 
         #participant-list {
@@ -70,6 +87,27 @@
         .task-duration {
             width: 70px;
         }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #343a40;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+            .footer p {
+                margin: 5px 0;
+            }
+
+            .footer .container {
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 0 20px;
+            }
     </style>
 </head>
 
@@ -88,27 +126,14 @@
             <h3>Task Section</h3>
             @if ((bool)ViewBag.IsAdmin)
             {
-                <form id="taskForm">
+                <div id="taskForm">
                     <div class="form-group">
                         <input type="text" class="form-control" id="taskName" placeholder="Enter Task Name" required>
                     </div>
                     <button type="button" class="btn btn-success" onclick="addTask()">Add Task</button>
                     <button type="button" onclick="saveRoomToDatabase()" class="btn btn-success">Save Room In Database</button>
-                </form>
 
-                    <div class="container fixed-bottom mb-3">
-                        <div class="row">
-                            <div class="col-sm-4">
-                                <p class="text-start d-inline">Dev Effort: <span id="allDevEffort">0</span></p>
-                            </div>
-                            <div class="col-sm-4">
-                                <p class="text-center d-inline">Tester Effort:<span id="allTesterEffort">0</span> </p>
-                            </div>
-                            <div class="col-sm-4">
-                                <p class="text-end d-inline">Total Effort: <span id="allTotalEffort">0</span></p>
-                            </div>
-                        </div>
-                    </div>
+                </div>
             }
             else
             {
@@ -117,7 +142,6 @@
                         <tr>
                             <th>Name</th>
                             <th>Statu</th>
-                            @*      <th>Effort</th> *@
                         </tr>
                     </thead>
                     <tbody id="taskHistoryTableForNormalUser">
@@ -125,11 +149,29 @@
                 </table>
 
             }
-            <ul id="taskList" class="task-list">
-            </ul>      
+            <ul id="taskList" class="task-list stick-overflow">
+            </ul>
         </div>
 
     </div>
+    @if ((bool)ViewBag.IsAdmin)
+    {
+        <div class="footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-4">
+                        <p class="text-start d-inline">Dev Effort: <span id="allDevEffort">0</span></p>
+                    </div>
+                    <div class="col-sm-4">
+                        <p class="text-center d-inline">Tester Effort: <span id="allTesterEffort">0</span> </p>
+                    </div>
+                    <div class="col-sm-4">
+                        <p class="text-end d-inline">Total Effort: <span id="allTotalEffort">0</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="~/js/microsoft/signalr/dist/webworker/signalr.min.js"></script>
@@ -178,16 +220,15 @@
 
     @if ((bool)ViewBag.IsAdmin)
     {
-        <div id="task-section">
+        <div id="task-section" class="stick-overflow" style="width: 45%;">
             <h4>Task History</h4>
-            <table class="table">
+            <table class="table task-table">
                 <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Statu</th>
+                        <th>Status</th>
                         <th>Detail</th>
                         <th>Delete</th>
-
                     </tr>
                 </thead>
                 <tbody id="taskHistoryTable">
