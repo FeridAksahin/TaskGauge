@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="StackExchange.Redis" Version="2.7.33" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\TaskGauge.Common\TaskGauge.Common.csproj" />
     <ProjectReference Include="..\TaskGauge.DataTransferObject\TaskGauge.DataTransferObject.csproj" />
     <ProjectReference Include="..\TaskGauge.Entity\TaskGauge.Entity.csproj" />
