@@ -3,6 +3,7 @@
     .configureLogging(signalR.LogLevel.Information)
     .build();
 
+start();
 connection.on("userJoined", function (username) {
     $('#participants').append('<li class="participant">' + username + '</li>');
 });
@@ -17,11 +18,14 @@ let urlParams = new URLSearchParams(window.location.search);
 let roomNameFromUrl = document.getElementById('roomName').value;
 let isAdmin = document.getElementById('isAdmin').value;
 
-connection.start().then(function () {
-    connection.invoke("joinRoom", roomNameFromUrl, isAdmin);
-}).catch(function (err) {
-    return console.error(err.toString());
-});
+function start() {
+    connection.start().then(function () {
+        connection.invoke("joinRoom", roomNameFromUrl, isAdmin);
+    }).catch(function (err) {
+        console.error(err.toString());
+        setTimeout(() => start(), 2000);
+    });
+}
 
 connection.on("alreadyInTheJoinRoom", function (message) {
     Swal.fire({
@@ -62,7 +66,7 @@ function fillTaskEffortDurationForRoomAdmin() {
     document.getElementById('testerEffort').textContent = 0;
     document.getElementById('totalEffort').textContent = 0;
 
-  
+
 
     for (let item = 0; item < taskTotalTimeInformationList.length; item++) {
         if (taskTotalTimeInformationList[item].taskName == openedTaskName) {
@@ -72,16 +76,14 @@ function fillTaskEffortDurationForRoomAdmin() {
         }
     }
 
-   
+
 }
 
-function saveRoomToDatabase()
-{
+function saveRoomToDatabase() {
     connection.invoke("saveDatabase", roomNameFromUrl);
 }
 
-function fillAllEffortDurationForRoomAdmin()
-{
+function fillAllEffortDurationForRoomAdmin() {
     let testTeamEffort = 0;
     let devTeamEffort = 0;
     let totalEffort = 0;
@@ -184,13 +186,11 @@ connection.on("getEffort", function (taskEffortList, totalTaskEffortInformation)
         fillTaskEffortDurationForRoomAdmin();
 
         for (let item = 0; item < taskEfforts.length; item++) {
-            if (document.getElementById(`${taskEfforts[item].username}`) != null && openedTaskName == taskEfforts[item].taskName)
-            {
+            if (document.getElementById(`${taskEfforts[item].username}`) != null && openedTaskName == taskEfforts[item].taskName) {
                 document.getElementById(`${taskEfforts[item].username}`).innerHTML = taskEfforts[item].effort
                 document.getElementById(`${taskEfforts[item].username}-Role`).innerHTML = taskEfforts[item].userRole
             }
-            else if (openedTaskName == taskEfforts[item].taskName)
-            {
+            else if (openedTaskName == taskEfforts[item].taskName) {
                 let tableRow =
                     `<tr>
                  <td>${taskEfforts[item].username}</td> 
