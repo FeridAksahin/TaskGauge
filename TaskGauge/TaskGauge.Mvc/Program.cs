@@ -7,6 +7,7 @@ using TaskGauge.DataAccessLayer.Concrete;
 using TaskGauge.DataAccessLayer.Interface;
 using TaskGauge.Entity.Context;
 using TaskGauge.Mvc.Hubs;
+using TaskGauge.Services;
 
 var configuration = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -51,7 +52,7 @@ builder.Services.AddScoped<TaskGaugeContext>();
 builder.Services.AddScoped<IUserDal, UserDal>();
 builder.Services.AddScoped<IRoomDal, RoomDal>();
 builder.Services.AddScoped<UserInformation>();
-
+builder.Services.AddSingleton(_ => new RedisService(builder.Configuration["Redis:Url"]));
 builder.Services.AddSignalR();
 builder.Services.AddHttpContextAccessor();
 var app = builder.Build();

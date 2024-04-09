@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskGauge.DataTransferObjec
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskGauge.ViewModel", "TaskGauge.ViewModel\TaskGauge.ViewModel.csproj", "{313D060A-C35A-4B07-8300-7DA59A510D64}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskGauge.Services", "TaskGauge.Services\TaskGauge.Services.csproj", "{7424509C-D03D-405A-8652-E7ABEACBEEF3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskGauge.Services", "TaskGauge.Services\TaskGauge.Services.csproj", "{7424509C-D03D-405A-8652-E7ABEACBEEF3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
