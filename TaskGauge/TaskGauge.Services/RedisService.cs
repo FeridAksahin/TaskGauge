@@ -1,12 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using StackExchange.Redis;
 
 namespace TaskGauge.Services
 {
-    internal class RedisService
+
+    public class RedisService
     {
+
+        private ConnectionMultiplexer _connectionMultiplexer;
+
+        public RedisService(string url)
+        {
+           _connectionMultiplexer = ConnectionMultiplexer.Connect(url);
+        }
+
+        public IDatabase Connect(int requestDbNumber)
+        {
+            return _connectionMultiplexer.GetDatabase(requestDbNumber);
+        } 
     }
 }
