@@ -20,6 +20,7 @@
     <ProjectReference Include="..\TaskGauge.DataAccessLayer\TaskGauge.DataAccessLayer.csproj" />
     <ProjectReference Include="..\TaskGauge.DataTransferObject\TaskGauge.DataTransferObject.csproj" />
     <ProjectReference Include="..\TaskGauge.Entity\TaskGauge.Entity.csproj" />
+    <ProjectReference Include="..\TaskGauge.Services\TaskGauge.Services.csproj" />
     <ProjectReference Include="..\TaskGauge.ViewModel\TaskGauge.ViewModel.csproj" />
   </ItemGroup>
 
