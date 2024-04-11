@@ -1,22 +1,28 @@
-﻿using System;
+﻿using StackExchange.Redis;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using TaskGauge.Common;
 using TaskGauge.DataAccessLayer.Interface;
+using TaskGauge.DataTransferObject;
 using TaskGauge.Entity.Context;
 using TaskGauge.Entity.Entity;
+using TaskGauge.Services;
 
 namespace TaskGauge.DataAccessLayer.Concrete
 {
     public class RoomDal : IRoomDal
     {
+        private IDatabase _redisService;
         RoomStatic roomStatic = RoomStatic.Instance;
         private TaskGaugeContext _taskGaugeContext;
         private UserInformation _userInformation;
-        public RoomDal(TaskGaugeContext taskGaugeContext, UserInformation userInformation)
+        public RoomDal(TaskGaugeContext taskGaugeContext, UserInformation userInformation, RedisService redisService)
         {
+            _redisService = redisService.Connect(0);
             _userInformation = userInformation;
             _taskGaugeContext = taskGaugeContext;
         }
@@ -28,7 +34,7 @@ namespace TaskGauge.DataAccessLayer.Concrete
 
         public bool AddRoom(string roomName)
         {
-            _taskGaugeContext.Room.Add(new Room { Name = roomName, RoomAdminId = _userInformation.GetUserIdFromCookie() });
+            _taskGaugeContext.Room.Add(new TaskGauge.Entity.Entity.Room { Name = roomName, RoomAdminId = _userInformation.GetUserIdFromCookie() });
             int result = _taskGaugeContext.SaveChanges();
             return result > 0;
         }
@@ -62,7 +68,7 @@ namespace TaskGauge.DataAccessLayer.Concrete
             return _taskGaugeContext.Room.ToList().Exists(x => x.Name == roomName);
         }
 
-        public void GetAllTaskIntoStaticList()
+        public void GetAllTaskIntoRedisList()
         {
             var tasks = from task in _taskGaugeContext.Task
                         select new
@@ -70,15 +76,12 @@ namespace TaskGauge.DataAccessLayer.Concrete
                             Task = task,
                             RoomName = task.Room.Name
                         };
+            _redisService.ListTrim(TextResources.RedisCacheKeys.AllRoomTasks, 1, 0);
             foreach (var task in tasks)
             {
-                roomStatic.allRoomTask.Add(new DataTransferObject.TaskDto
-                {
-                    RecordBy = task.Task.RecordBy,
-                    RecordDate = task.Task.RecordDate,
-                    RoomName = task.RoomName,
-                    TaskName = task.Task.Name
-                });
+
+                var serializeTaskModel = new { RecordBy = task.Task.RecordBy, RecordDate = task.Task.RecordDate, RoomName = task.RoomName, TaskName = task.Task.Name };
+                _redisService.ListRightPush(TextResources.RedisCacheKeys.AllRoomTasks, JsonSerializer.Serialize(serializeTaskModel));
             }
 
         }
@@ -89,11 +92,22 @@ namespace TaskGauge.DataAccessLayer.Concrete
             return SaveTaskToDatabase(roomName, roomId) + SaveTaskTotalEffortInformationToDatabase(roomName, roomId) + SaveUserEffortToDatabase(roomName, roomId);
         }
 
+        public List<TaskDto> GetAllRoomTaskFromRedis()
+        {
+            List<TaskDto> allRoomTask = new();
+            var allRoomTasksRedisKey = TextResources.RedisCacheKeys.AllRoomTasks;
+            if (_redisService.KeyExists(allRoomTasksRedisKey))
+            {
+                allRoomTask = _redisService.ListRange(allRoomTasksRedisKey).Select(x => JsonSerializer.Deserialize<TaskDto>(x)).ToList();
+            }
+            return allRoomTask;
+        }
+
         public string SaveTaskToDatabase(string roomName, int roomId)
         {
             try
             {
-                foreach (var task in roomStatic.allRoomTask)
+                foreach (var task in GetAllRoomTaskFromRedis())
                 {
                     if (task.RoomName.Equals(roomName) && !IsTaskExist(roomId, task.TaskName))
                     {
@@ -104,7 +118,7 @@ namespace TaskGauge.DataAccessLayer.Concrete
                 return string.Empty;
             }
 
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 return exception.Message;
             }

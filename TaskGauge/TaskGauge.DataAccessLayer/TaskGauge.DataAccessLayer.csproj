@@ -14,6 +14,7 @@
     <ProjectReference Include="..\TaskGauge.Common\TaskGauge.Common.csproj" />
     <ProjectReference Include="..\TaskGauge.DataTransferObject\TaskGauge.DataTransferObject.csproj" />
     <ProjectReference Include="..\TaskGauge.Entity\TaskGauge.Entity.csproj" />
+    <ProjectReference Include="..\TaskGauge.Services\TaskGauge.Services.csproj" />
   </ItemGroup>
 
 </Project>

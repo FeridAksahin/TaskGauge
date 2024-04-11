@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using StackExchange.Redis;
 using System;
 using System.Globalization;
+using System.Text.Json;
 using System.Threading.Tasks;
 using TaskGauge.Common;
 using TaskGauge.DataAccessLayer.Interface;
 using TaskGauge.DataTransferObject;
+using TaskGauge.Services;
 using TaskGauge.ViewModel;
 
 namespace TaskGauge.Mvc.Hubs
@@ -14,9 +17,11 @@ namespace TaskGauge.Mvc.Hubs
         RoomStatic roomUserStatic = RoomStatic.Instance;
         private static Dictionary<string, string> _openOrClosedTask = new Dictionary<string, string>();
         private IRoomDal _roomDal;
+        private readonly IDatabase _redisService;
 
-        public TaskGaugeHub(IRoomDal roomDal)
+        public TaskGaugeHub(IRoomDal roomDal, RedisService redisService)
         {
+            _redisService = redisService.Connect(0);
             _roomDal = roomDal;
         }
 
@@ -33,7 +38,7 @@ namespace TaskGauge.Mvc.Hubs
             bool.TryParse(isAdmin, out var isAdminBool);
             roomMember.IsAdmin = isAdminBool;
             roomMember.ConnectionId = Context.ConnectionId;
-            var roomTaskList = GetRoomTaskList(roomUserStatic.allRoomTask, roomName);
+            var roomTaskList = GetRoomTaskList(_roomDal.GetAllRoomTaskFromRedis(), roomName);
             if (roomUserStatic.roomUser.Exists(x => x.Username == username && !x.IsItInTheRoom && x.RoomName.Equals(roomName)))
             {
                 roomUserStatic.roomUser.ForEach(user => user.IsItInTheRoom = user.Username == username && user.RoomName.Equals(roomName) ? true : user.IsItInTheRoom);
@@ -68,8 +73,8 @@ namespace TaskGauge.Mvc.Hubs
         {
             var user = roomUserStatic.roomUser.Where(x => x.ConnectionId.Equals(Context.ConnectionId)).FirstOrDefault();
             var roomName = user.RoomName;
-
-            var isExistTaskName = roomUserStatic.allRoomTask.Exists(x => x.TaskName.Equals(taskName) && x.RoomName.Equals(roomName));
+            var allRoomTask = _roomDal.GetAllRoomTaskFromRedis();
+            var isExistTaskName = allRoomTask.Exists(x => x.TaskName.Equals(taskName) && x.RoomName.Equals(roomName));
 
             TaskViewModel taskModel = new TaskViewModel()
             {
@@ -91,13 +96,16 @@ namespace TaskGauge.Mvc.Hubs
                     TaskName = taskName,
                     IsSuccess = true
                 };
-                roomUserStatic.allRoomTask.Add(new TaskDto
+
+                var taskJsonModel = new TaskDto
                 {
                     RecordBy = user.UserId,
                     RecordDate = DateTime.Now,
                     RoomName = roomName,
                     TaskName = taskName
-                });
+                };
+
+                _redisService.ListRightPush(TextResources.RedisCacheKeys.AllRoomTasks, JsonSerializer.Serialize(taskJsonModel));
             }
 
             await Clients.Caller.SendAsync("addedTaskByAdmin", taskModel);
