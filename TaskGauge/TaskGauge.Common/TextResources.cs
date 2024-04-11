@@ -15,6 +15,7 @@ namespace TaskGauge.Common
         public static class RedisCacheKeys
         {
             public static readonly string AllRoomTasks = "allRoomTasks";
+            public static readonly string AllActiveRoom = "allActiveRoom";
         }
     }
 }
