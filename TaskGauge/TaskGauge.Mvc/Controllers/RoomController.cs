@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using StackExchange.Redis;
+using System.Text.Json;
 using TaskGauge.Common;
 using TaskGauge.DataAccessLayer.Interface;
 using TaskGauge.DataTransferObject;
-using TaskGauge.ViewModel;
+using TaskGauge.Services;
 
 namespace TaskGauge.Mvc.Controllers
 {
@@ -15,15 +17,17 @@ namespace TaskGauge.Mvc.Controllers
         public static bool IsAllRoomExist = false;
         private IRoomDal _roomDal;
         private UserInformation _user;
+        private readonly IDatabase _redisDatabase;
 
 
-        public RoomController(IRoomDal roomDal, UserInformation user)
+        public RoomController(IRoomDal roomDal, UserInformation user, RedisService redisService)
         {
+            _redisDatabase = redisService.Connect(0);
             _roomDal = roomDal;
             _user = user;
             if (!IsAllRoomExist)
             {
-                _roomDal.GetAllRoomIntoStaticList();
+                _roomDal.GetAllRoomIntoRedisList();
                 _roomDal.GetAllTaskIntoRedisList();
                 IsAllRoomExist = true;
             }
@@ -52,7 +56,7 @@ namespace TaskGauge.Mvc.Controllers
 
             if (result)
             {
-                RoomStatic.Instance.room.Add(new Room { isActive = true, Name = roomName });
+                _redisDatabase.ListRightPush(TextResources.RedisCacheKeys.AllActiveRoom, JsonSerializer.Serialize(new Room { isActive = true, Name = roomName }));
             }
             return result ? Json(true) : Json("Try again.");
 
@@ -68,7 +72,7 @@ namespace TaskGauge.Mvc.Controllers
         {
             try
             {
-                foreach (var item in roomUser.room)
+                foreach (var item in _roomDal.GetAllActiveRoomFromRedis())
                 {
                     if (item.Name.Equals(roomName) && item.isActive)
                     {
