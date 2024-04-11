@@ -2,11 +2,12 @@
 
 Task Gauge is a Scrum poker application designed for use in package kickoff meetings. It was built to allow participants to make and join rooms in real time and provide predictions for opened tasks. The project used MVC architecture, SignalR for real-time communication and Entity Framework for data management.
 
-Note: To optimize performance, the effort estimates provided for tasks opened during the meeting are temporarily stored in a static list. These predictions are added to the database only when the room is closed, minimizing frequent interactions with the database.
+Note: To optimize performance, the effort estimates provided for tasks opened during the meeting are temporarily stored in a Redis. These predictions are added to the database only when the database if the room maker requests it (save to database button), minimizing frequent interactions with the database.
 
 ## Features
 
 - Real-time communication with SignalR
+- Redis as distributed cache 
 - Room make and management
 - User authentication and participation
 - Real-time task estimations
@@ -32,6 +33,7 @@ Note: To optimize performance, the effort estimates provided for tasks opened du
 
 - ASP.NET Core MVC
 - SignalR (For Real-Time Communication)
+- Redis
 - Entity Framework (Code-First Approach)
 - Cookie-based Authentication
 - SweetAlert2
