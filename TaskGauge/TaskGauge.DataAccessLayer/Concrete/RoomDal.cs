@@ -16,13 +16,13 @@ namespace TaskGauge.DataAccessLayer.Concrete
 {
     public class RoomDal : IRoomDal
     {
-        private IDatabase _redisService;
+        private IDatabase _redisDatabase;
         RoomStatic roomStatic = RoomStatic.Instance;
         private TaskGaugeContext _taskGaugeContext;
         private UserInformation _userInformation;
         public RoomDal(TaskGaugeContext taskGaugeContext, UserInformation userInformation, RedisService redisService)
         {
-            _redisService = redisService.Connect(0);
+            _redisDatabase = redisService.Connect(0);
             _userInformation = userInformation;
             _taskGaugeContext = taskGaugeContext;
         }
@@ -47,19 +47,30 @@ namespace TaskGauge.DataAccessLayer.Concrete
                     select room).Any();
         }
 
-        public void GetAllRoomIntoStaticList()
+        public List<DataTransferObject.Room> GetAllActiveRoomFromRedis()
+        {
+            List<DataTransferObject.Room> allRoom = new();
+            var allRoomRedisKey = TextResources.RedisCacheKeys.AllActiveRoom;
+            if (_redisDatabase.KeyExists(allRoomRedisKey))
+            {
+                allRoom = _redisDatabase.ListRange(allRoomRedisKey).Select(x => JsonSerializer.Deserialize<DataTransferObject.Room>(x)).ToList();
+            }
+            return allRoom;
+        }
+
+        public void GetAllRoomIntoRedisList()
         {
             var rooms = from room in _taskGaugeContext.Room
                         where room.isActive
                         select room;
+
+            var roomRedisKey = TextResources.RedisCacheKeys.AllActiveRoom;
+            _redisDatabase.ListTrim(roomRedisKey, 1, 0);
+
             foreach (var room in rooms)
             {
-                this.roomStatic.room.Add(new DataTransferObject.Room
-                {
-                    Name = room.Name,
-                    isActive = room.isActive,
-                    RoomAdmin = room.RoomAdmin.Name
-                });
+                var jsonModel = new {room.Name, room.isActive, RoomAdmin = room.RoomAdmin.Name};
+                _redisDatabase.ListRightPush(roomRedisKey, JsonSerializer.Serialize(jsonModel));
             }
         }
 
@@ -76,12 +87,12 @@ namespace TaskGauge.DataAccessLayer.Concrete
                             Task = task,
                             RoomName = task.Room.Name
                         };
-            _redisService.ListTrim(TextResources.RedisCacheKeys.AllRoomTasks, 1, 0);
+            _redisDatabase.ListTrim(TextResources.RedisCacheKeys.AllRoomTasks, 1, 0);
             foreach (var task in tasks)
             {
 
                 var serializeTaskModel = new { RecordBy = task.Task.RecordBy, RecordDate = task.Task.RecordDate, RoomName = task.RoomName, TaskName = task.Task.Name };
-                _redisService.ListRightPush(TextResources.RedisCacheKeys.AllRoomTasks, JsonSerializer.Serialize(serializeTaskModel));
+                _redisDatabase.ListRightPush(TextResources.RedisCacheKeys.AllRoomTasks, JsonSerializer.Serialize(serializeTaskModel));
             }
 
         }
@@ -96,9 +107,9 @@ namespace TaskGauge.DataAccessLayer.Concrete
         {
             List<TaskDto> allRoomTask = new();
             var allRoomTasksRedisKey = TextResources.RedisCacheKeys.AllRoomTasks;
-            if (_redisService.KeyExists(allRoomTasksRedisKey))
+            if (_redisDatabase.KeyExists(allRoomTasksRedisKey))
             {
-                allRoomTask = _redisService.ListRange(allRoomTasksRedisKey).Select(x => JsonSerializer.Deserialize<TaskDto>(x)).ToList();
+                allRoomTask = _redisDatabase.ListRange(allRoomTasksRedisKey).Select(x => JsonSerializer.Deserialize<TaskDto>(x)).ToList();
             }
             return allRoomTask;
         }

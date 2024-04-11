@@ -12,10 +12,11 @@ namespace TaskGauge.DataAccessLayer.Interface
         public bool IsRoomExist(string roomName);
         public bool AddRoom(string roomName);
         public bool IsTheLoggedInUserTheRoomAdministrator(string roomName);
-        public void GetAllRoomIntoStaticList();
+        public void GetAllRoomIntoRedisList();
         public void GetAllTaskIntoRedisList();
         public bool IsExistRoomName(string roomName);
         public string SaveToDatabase(string roomName);
         public List<TaskDto> GetAllRoomTaskFromRedis();
+        public List<Room> GetAllActiveRoomFromRedis();
     }
 }

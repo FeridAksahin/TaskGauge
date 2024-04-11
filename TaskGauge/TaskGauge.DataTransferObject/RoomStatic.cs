@@ -28,7 +28,6 @@ public class RoomStatic
     }
 
     public List<RoomUserDto> roomUser = new List<RoomUserDto>();
-    public List<Room> room = new List<Room>();
     public List<TaskEffortViewModel> taskEffortList = new List<TaskEffortViewModel>();
     public List<TotalTaskEffortInformationViewModel> totalTaskEffortInformation = new List<TotalTaskEffortInformationViewModel>();
 }
