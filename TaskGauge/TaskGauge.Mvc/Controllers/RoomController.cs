@@ -24,7 +24,7 @@ namespace TaskGauge.Mvc.Controllers
             if (!IsAllRoomExist)
             {
                 _roomDal.GetAllRoomIntoStaticList();
-                _roomDal.GetAllTaskIntoStaticList();
+                _roomDal.GetAllTaskIntoRedisList();
                 IsAllRoomExist = true;
             }
         }
