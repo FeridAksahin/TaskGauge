@@ -17,16 +17,18 @@ namespace TaskGauge.Mvc.Hubs
         RoomStatic roomUserStatic = RoomStatic.Instance;
         private static Dictionary<string, string> _openOrClosedTask = new Dictionary<string, string>();
         private IRoomDal _roomDal;
-        private readonly IDatabase _redisService;
+        private readonly IDatabase _redisDatabase;
 
         public TaskGaugeHub(IRoomDal roomDal, RedisService redisService)
         {
-            _redisService = redisService.Connect(0);
+            _redisDatabase = redisService.Connect(0);
             _roomDal = roomDal;
         }
 
         public async Task JoinRoom(string roomName, string isAdmin)
         {
+            List<RoomUserDto> roomUserListFromCache = _roomDal.GetAllRoomUserInformationFromRedis();
+         
             var httpContext = Context.GetHttpContext();
             var username = httpContext.Request.Cookies["Username"];
             RoomUserDto roomMember = new RoomUserDto();
@@ -39,12 +41,20 @@ namespace TaskGauge.Mvc.Hubs
             roomMember.IsAdmin = isAdminBool;
             roomMember.ConnectionId = Context.ConnectionId;
             var roomTaskList = GetRoomTaskList(_roomDal.GetAllRoomTaskFromRedis(), roomName);
-            if (roomUserStatic.roomUser.Exists(x => x.Username == username && !x.IsItInTheRoom && x.RoomName.Equals(roomName)))
+            if (roomUserListFromCache.Exists(x => x.Username == username && !x.IsItInTheRoom && x.RoomName.Equals(roomName)))
             {
-                roomUserStatic.roomUser.ForEach(user => user.IsItInTheRoom = user.Username == username && user.RoomName.Equals(roomName) ? true : user.IsItInTheRoom);
-                roomUserStatic.roomUser.ForEach(user => user.ConnectionId = user.Username == username && user.RoomName.Equals(roomName) ? roomMember.ConnectionId : user.ConnectionId);
+                foreach(var user in roomUserListFromCache)
+                {
+                    if(user.Username == username && user.RoomName.Equals(roomName))
+                    {
+                       var redisUpdateValueIndex =  _redisDatabase.ListPosition(TextResources.RedisCacheKeys.RoomUser, JsonSerializer.Serialize(user));
+                        user.IsItInTheRoom = true;
+                        user.ConnectionId = roomMember.ConnectionId;
+                        _redisDatabase.ListSetByIndex(TextResources.RedisCacheKeys.RoomUser, redisUpdateValueIndex, JsonSerializer.Serialize(user));
+                    }
+                }
             }
-            else if (roomUserStatic.roomUser.Exists(x => x.Username == username && x.IsItInTheRoom && x.RoomName.Equals(roomName)))
+            else if (roomUserListFromCache.Exists(x => x.Username == username && x.IsItInTheRoom && x.RoomName.Equals(roomName)))
             {
                 var message = "You are already in the room.";
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomName);
@@ -53,17 +63,19 @@ namespace TaskGauge.Mvc.Hubs
             }
             else
             {
-                roomUserStatic.roomUser.Add(roomMember);
+                _redisDatabase.ListRightPush(TextResources.RedisCacheKeys.RoomUser, JsonSerializer.Serialize(roomMember));
+                _redisDatabase.KeyExpire(TextResources.RedisCacheKeys.RoomUser, TimeSpan.FromHours(2));
+                roomUserListFromCache.Add(roomMember);
             }
 
-            var roomUserList = GetTheNameOfTheUsersInTheRoom(roomUserStatic.roomUser, roomName);
+            var roomUserList = GetTheNameOfTheUsersInTheRoom(roomUserListFromCache, roomName);
             await Clients.Caller.SendAsync("userList", roomUserList);
             await Groups.AddToGroupAsync(Context.ConnectionId, roomName);
             await Clients.OthersInGroup(roomName).SendAsync("userJoined", username);
             await Clients.Caller.SendAsync("addTaskForJoinedUser", roomTaskList);
             if (Convert.ToBoolean(isAdmin))
             {
-                var adminConnectionId = roomUserStatic.roomUser.Where(x => x.RoomName.Equals(roomName) && x.IsAdmin).FirstOrDefault().ConnectionId;
+                var adminConnectionId = roomUserListFromCache.Where(x => x.RoomName.Equals(roomName) && x.IsAdmin).FirstOrDefault().ConnectionId;
                 await Clients.Client(adminConnectionId).SendAsync("getEffort", roomUserStatic.taskEffortList, roomUserStatic.totalTaskEffortInformation);
             }
 
@@ -71,7 +83,9 @@ namespace TaskGauge.Mvc.Hubs
 
         public async Task AddTask(string taskName)
         {
-            var user = roomUserStatic.roomUser.Where(x => x.ConnectionId.Equals(Context.ConnectionId)).FirstOrDefault();
+            List<RoomUserDto> roomUserListFromCache = _roomDal.GetAllRoomUserInformationFromRedis();
+
+            var user = roomUserListFromCache.Where(x => x.ConnectionId.Equals(Context.ConnectionId)).FirstOrDefault();
             var roomName = user.RoomName;
             var allRoomTask = _roomDal.GetAllRoomTaskFromRedis();
             var isExistTaskName = allRoomTask.Exists(x => x.TaskName.Equals(taskName) && x.RoomName.Equals(roomName));
@@ -105,7 +119,7 @@ namespace TaskGauge.Mvc.Hubs
                     TaskName = taskName
                 };
 
-                _redisService.ListRightPush(TextResources.RedisCacheKeys.AllRoomTasks, JsonSerializer.Serialize(taskJsonModel));
+                _redisDatabase.ListRightPush(TextResources.RedisCacheKeys.AllRoomTasks, JsonSerializer.Serialize(taskJsonModel));
             }
 
             await Clients.Caller.SendAsync("addedTaskByAdmin", taskModel);
@@ -117,12 +131,22 @@ namespace TaskGauge.Mvc.Hubs
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
+            List<RoomUserDto> roomUserListFromCache = _roomDal.GetAllRoomUserInformationFromRedis();
             var httpContext = Context.GetHttpContext();
             var username = httpContext.Request.Cookies["Username"];
-            var roomUser = roomUserStatic.roomUser.FirstOrDefault(x => x.Username == username && x.IsItInTheRoom);
+            var roomUser = roomUserListFromCache.FirstOrDefault(x => x.Username == username && x.IsItInTheRoom);
             if (Context.ConnectionId == roomUser.ConnectionId)
             {
-                roomUserStatic.roomUser.ForEach(x => x.IsItInTheRoom = x.Username == username && x.RoomName.Equals(roomUser.RoomName) ? false : x.IsItInTheRoom);
+                foreach (var user in roomUserListFromCache)
+                {
+                    if (user.Username == username && user.RoomName.Equals(roomUser.RoomName))
+                    {
+                        var redisUpdateValueIndex = _redisDatabase.ListPosition(TextResources.RedisCacheKeys.RoomUser, JsonSerializer.Serialize(user));
+                        user.IsItInTheRoom = false;
+                        _redisDatabase.ListSetByIndex(TextResources.RedisCacheKeys.RoomUser, redisUpdateValueIndex, JsonSerializer.Serialize(user));
+                    }
+                }
+
                 await Clients.OthersInGroup(roomUser.RoomName).SendAsync("userLeft", username);
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomUser.RoomName);
                 await base.OnDisconnectedAsync(exception);
@@ -131,7 +155,9 @@ namespace TaskGauge.Mvc.Hubs
 
         public async Task TaskEffort(string taskName, string taskEffortDuration)
         {
-            var user = roomUserStatic.roomUser.Where(x => x.ConnectionId.Equals(Context.ConnectionId)).FirstOrDefault();
+            var roomUserListFromCache = _roomDal.GetAllRoomUserInformationFromRedis();
+
+            var user = roomUserListFromCache.Where(x => x.ConnectionId.Equals(Context.ConnectionId)).FirstOrDefault();
             var isExistEffort = false;
             var taskEffort = Convert.ToDouble(taskEffortDuration, CultureInfo.InvariantCulture);
             foreach (var item in roomUserStatic.taskEffortList)
@@ -160,7 +186,7 @@ namespace TaskGauge.Mvc.Hubs
             }
             var totalEffort = GetTotalEffortInformationForAdmin(user.RoomName, taskName);
             roomUserStatic.totalTaskEffortInformation.Add(totalEffort);
-            var adminConnectionId = roomUserStatic.roomUser.Where(x => x.RoomName.Equals(user.RoomName) && x.IsAdmin).FirstOrDefault().ConnectionId;
+            var adminConnectionId = roomUserListFromCache.Where(x => x.RoomName.Equals(user.RoomName) && x.IsAdmin).FirstOrDefault().ConnectionId;
             await Clients.Client(adminConnectionId).SendAsync("getEffort", roomUserStatic.taskEffortList, roomUserStatic.totalTaskEffortInformation);
 
         }
@@ -191,6 +217,7 @@ namespace TaskGauge.Mvc.Hubs
 
         public async Task OpenOrCloseTask(string taskSituation, string taskName)
         {
+            var roomUserListFromCache = _roomDal.GetAllRoomUserInformationFromRedis();
             if (!_openOrClosedTask.ContainsKey(taskName))
             {
                 _openOrClosedTask.Add(taskName, taskSituation);
@@ -199,7 +226,7 @@ namespace TaskGauge.Mvc.Hubs
             {
                 _openOrClosedTask[taskName] = taskSituation;
             }
-            var roomName = roomUserStatic.roomUser.FirstOrDefault(x => x.ConnectionId.Equals(Context.ConnectionId)).RoomName;
+            var roomName = roomUserListFromCache.FirstOrDefault(x => x.ConnectionId.Equals(Context.ConnectionId)).RoomName;
             await Clients.OthersInGroup(roomName).SendAsync("changeTaskSituation", taskSituation, taskName);
         }
 
