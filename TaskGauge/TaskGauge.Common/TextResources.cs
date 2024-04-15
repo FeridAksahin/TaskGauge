@@ -16,6 +16,7 @@ namespace TaskGauge.Common
         {
             public static readonly string AllRoomTasks = "allRoomTasks";
             public static readonly string AllActiveRoom = "allActiveRoom";
+            public static readonly string RoomUser = "roomUser";
         }
     }
 }
