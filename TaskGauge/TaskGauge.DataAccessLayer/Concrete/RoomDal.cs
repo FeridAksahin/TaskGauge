@@ -114,6 +114,17 @@ namespace TaskGauge.DataAccessLayer.Concrete
             return allRoomTask;
         }
 
+        public List<RoomUserDto> GetAllRoomUserInformationFromRedis()
+        {
+            var roomUserRedisListKey = TextResources.RedisCacheKeys.RoomUser;
+            List<RoomUserDto> roomUserListFromCache = new List<RoomUserDto>();
+            if (_redisDatabase.KeyExists(roomUserRedisListKey))
+            {
+                roomUserListFromCache = _redisDatabase.ListRange(roomUserRedisListKey).Select(x => JsonSerializer.Deserialize<RoomUserDto>(x)).ToList();
+            }
+            return roomUserListFromCache;
+        }
+
         public string SaveTaskToDatabase(string roomName, int roomId)
         {
             try

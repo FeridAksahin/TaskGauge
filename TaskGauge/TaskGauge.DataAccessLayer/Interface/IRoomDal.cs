@@ -18,5 +18,6 @@ namespace TaskGauge.DataAccessLayer.Interface
         public string SaveToDatabase(string roomName);
         public List<TaskDto> GetAllRoomTaskFromRedis();
         public List<Room> GetAllActiveRoomFromRedis();
+        public List<RoomUserDto> GetAllRoomUserInformationFromRedis();
     }
 }
