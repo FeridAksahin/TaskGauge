@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TaskGauge.DataTransferObject;
+using TaskGauge.ViewModel;
 
 namespace TaskGauge.DataAccessLayer.Interface
 {
@@ -19,5 +20,6 @@ namespace TaskGauge.DataAccessLayer.Interface
         public List<TaskDto> GetAllRoomTaskFromRedis();
         public List<Room> GetAllActiveRoomFromRedis();
         public List<RoomUserDto> GetAllRoomUserInformationFromRedis();
+        public List<TaskEffortViewModel> GetAllDetailedTaskEffortListFromRedis();
     }
 }
