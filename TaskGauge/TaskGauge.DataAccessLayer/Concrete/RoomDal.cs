@@ -11,6 +11,7 @@ using TaskGauge.DataTransferObject;
 using TaskGauge.Entity.Context;
 using TaskGauge.Entity.Entity;
 using TaskGauge.Services;
+using TaskGauge.ViewModel;
 
 namespace TaskGauge.DataAccessLayer.Concrete
 {
@@ -125,6 +126,17 @@ namespace TaskGauge.DataAccessLayer.Concrete
             return roomUserListFromCache;
         }
 
+        public List<TaskEffortViewModel> GetAllDetailedTaskEffortListFromRedis()
+        {
+            var detailedTaskEffortRedisListKey = TextResources.RedisCacheKeys.DetailedTaskEffortList;
+            List<TaskEffortViewModel> detailedTaskEffortListFromCache = new List<TaskEffortViewModel>();
+            if (_redisDatabase.KeyExists(detailedTaskEffortRedisListKey))
+            {
+                detailedTaskEffortListFromCache = _redisDatabase.ListRange(detailedTaskEffortRedisListKey).Select(x => JsonSerializer.Deserialize<TaskEffortViewModel>(x)).ToList();
+            }
+            return detailedTaskEffortListFromCache;
+        }
+
         public string SaveTaskToDatabase(string roomName, int roomId)
         {
             try
@@ -151,7 +163,7 @@ namespace TaskGauge.DataAccessLayer.Concrete
         {
             try
             {
-                foreach (var item in roomStatic.taskEffortList)
+                foreach (var item in GetAllDetailedTaskEffortListFromRedis())
                 {
                     var userId = GetUserId(item.Username);
                     var taskId = (from entity in _taskGaugeContext.Task

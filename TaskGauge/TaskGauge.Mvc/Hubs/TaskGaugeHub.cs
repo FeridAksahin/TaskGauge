@@ -28,7 +28,7 @@ namespace TaskGauge.Mvc.Hubs
         public async Task JoinRoom(string roomName, string isAdmin)
         {
             List<RoomUserDto> roomUserListFromCache = _roomDal.GetAllRoomUserInformationFromRedis();
-         
+            var taskEffortList = _roomDal.GetAllDetailedTaskEffortListFromRedis();
             var httpContext = Context.GetHttpContext();
             var username = httpContext.Request.Cookies["Username"];
             RoomUserDto roomMember = new RoomUserDto();
@@ -43,11 +43,11 @@ namespace TaskGauge.Mvc.Hubs
             var roomTaskList = GetRoomTaskList(_roomDal.GetAllRoomTaskFromRedis(), roomName);
             if (roomUserListFromCache.Exists(x => x.Username == username && !x.IsItInTheRoom && x.RoomName.Equals(roomName)))
             {
-                foreach(var user in roomUserListFromCache)
+                foreach (var user in roomUserListFromCache)
                 {
-                    if(user.Username == username && user.RoomName.Equals(roomName))
+                    if (user.Username == username && user.RoomName.Equals(roomName))
                     {
-                       var redisUpdateValueIndex =  _redisDatabase.ListPosition(TextResources.RedisCacheKeys.RoomUser, JsonSerializer.Serialize(user));
+                        var redisUpdateValueIndex = _redisDatabase.ListPosition(TextResources.RedisCacheKeys.RoomUser, JsonSerializer.Serialize(user));
                         user.IsItInTheRoom = true;
                         user.ConnectionId = roomMember.ConnectionId;
                         _redisDatabase.ListSetByIndex(TextResources.RedisCacheKeys.RoomUser, redisUpdateValueIndex, JsonSerializer.Serialize(user));
@@ -76,7 +76,7 @@ namespace TaskGauge.Mvc.Hubs
             if (Convert.ToBoolean(isAdmin))
             {
                 var adminConnectionId = roomUserListFromCache.Where(x => x.RoomName.Equals(roomName) && x.IsAdmin).FirstOrDefault().ConnectionId;
-                await Clients.Client(adminConnectionId).SendAsync("getEffort", roomUserStatic.taskEffortList, roomUserStatic.totalTaskEffortInformation);
+                await Clients.Client(adminConnectionId).SendAsync("getEffort", taskEffortList, roomUserStatic.totalTaskEffortInformation);
             }
 
         }
@@ -156,29 +156,34 @@ namespace TaskGauge.Mvc.Hubs
         public async Task TaskEffort(string taskName, string taskEffortDuration)
         {
             var roomUserListFromCache = _roomDal.GetAllRoomUserInformationFromRedis();
-
+            var taskEffortList = _roomDal.GetAllDetailedTaskEffortListFromRedis();
             var user = roomUserListFromCache.Where(x => x.ConnectionId.Equals(Context.ConnectionId)).FirstOrDefault();
             var isExistEffort = false;
             var taskEffort = Convert.ToDouble(taskEffortDuration, CultureInfo.InvariantCulture);
-            foreach (var item in roomUserStatic.taskEffortList)
+            foreach (var item in taskEffortList)
             {
                 if (item.TaskName.Equals(taskName) && item.Username.Equals(user.Username) && item.RoomName.Equals(user.RoomName))
                 {
+                    var redisUpdateValueIndex = _redisDatabase.ListPosition(TextResources.RedisCacheKeys.DetailedTaskEffortList, JsonSerializer.Serialize(item));
                     isExistEffort = true;
                     item.Effort = taskEffort;
+                    _redisDatabase.ListSetByIndex(TextResources.RedisCacheKeys.DetailedTaskEffortList, redisUpdateValueIndex, JsonSerializer.Serialize(item));
                 }
             }
 
             if (!isExistEffort)
             {
-                roomUserStatic.taskEffortList.Add(new TaskEffortViewModel
+                var model = new TaskEffortViewModel
                 {
                     Effort = taskEffort,
                     TaskName = taskName,
                     Username = user.Username,
                     RoomName = user.RoomName,
                     UserRole = user.UserRole
-                });
+                };
+                var jsonModel = JsonSerializer.Serialize(model);
+                _redisDatabase.ListRightPush(TextResources.RedisCacheKeys.DetailedTaskEffortList, jsonModel);
+                taskEffortList.Add(model);
             }
             if (roomUserStatic.totalTaskEffortInformation.Count > 0)
             {
@@ -187,14 +192,14 @@ namespace TaskGauge.Mvc.Hubs
             var totalEffort = GetTotalEffortInformationForAdmin(user.RoomName, taskName);
             roomUserStatic.totalTaskEffortInformation.Add(totalEffort);
             var adminConnectionId = roomUserListFromCache.Where(x => x.RoomName.Equals(user.RoomName) && x.IsAdmin).FirstOrDefault().ConnectionId;
-            await Clients.Client(adminConnectionId).SendAsync("getEffort", roomUserStatic.taskEffortList, roomUserStatic.totalTaskEffortInformation);
+            await Clients.Client(adminConnectionId).SendAsync("getEffort", taskEffortList, roomUserStatic.totalTaskEffortInformation);
 
         }
 
         public TotalTaskEffortInformationViewModel GetTotalEffortInformationForAdmin(string roomName, string taskName)
         {
             TotalTaskEffortInformationViewModel totalEffortInformation = new TotalTaskEffortInformationViewModel();
-            foreach (var item in roomUserStatic.taskEffortList)
+            foreach (var item in _roomDal.GetAllDetailedTaskEffortListFromRedis())
             {
                 if (item.RoomName.Equals(roomName, StringComparison.OrdinalIgnoreCase) && item.TaskName.Equals(taskName, StringComparison.OrdinalIgnoreCase))
                 {

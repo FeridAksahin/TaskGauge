@@ -27,6 +27,5 @@ public class RoomStatic
         }
     }
 
-    public List<TaskEffortViewModel> taskEffortList = new List<TaskEffortViewModel>();
     public List<TotalTaskEffortInformationViewModel> totalTaskEffortInformation = new List<TotalTaskEffortInformationViewModel>();
 }
